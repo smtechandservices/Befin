@@ -1,0 +1,21 @@
+export const FINANCE_KEYWORDS = [
+    "money", "finance", "bank", "asset", "debt", "investment", "stock", "bond",
+    "capital", "currency", "economy", "market", "trade", "profit", "loss",
+    "credit", "debit", "tax", "wage", "salary", "loan", "interest", "budget",
+    "spending", "savings", "wealth", "payment", "cost", "price", "revenue",
+    "equity", "dividend", "insurance", "pension", "fund", "broker", "mortgage",
+    "valuation", "audit", "account", "accounting", "ledger", "transaction",
+    "commodity", "derivative", "option", "future", "liquidity", "solvency",
+    "inflation", "deflation", "recession", "fiscal", "monetary", "commerce",
+    "business", "enterprise", "retail", "wholesale", "consumer", "producer",
+    "supply", "demand", "valuation", "worth", "earning", "expense", "fee",
+    "tariff", "quota", "subsidy", "bailout", "stimulus", "grant", "stipend",
+    "allowance", "commission", "royalty", "bonus", "dividend", "yield",
+    "amortization", "depreciation", "appreciation", "leverage", "margin",
+    "collateral", "guarantor", "trust", "estate", "will", "bequest", "legacy",
+    "charity", "philanthropy", "donation", "contribution", "subscription",
+    "dues", "premium", "deductible", "claim", "benefit", "welfare", "subsidy",
+    "poverty", "luxury", "standard of living", "gdp", "gnp", "cpi", "libor",
+    "fed", "central bank", "wall street", "trading", "exchange", "nasdaq",
+    "nyse", "forex", "crypto", "bitcoin", "blockchain", "ledger", "wallet"
+];
