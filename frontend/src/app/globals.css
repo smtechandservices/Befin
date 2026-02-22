@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  /* Core Colors - New BeFin Blue Theme */
+  --color-primary: #0081ff;
+  /* Vibrant Blue */
+  --color-primary-hover: #0066cc;
+  --color-bg-brand: #0066ff;
+  /* Brand Background Blue */
+  --color-text-dark: #1a1a1a;
+  --color-text-muted: #666666;
+
+  /* Layout */
+  --radius-xl: 32px;
+  --radius-2xl: 48px;
+
+  /* Fonts */
+  --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+}
+
+
+@layer base {
+  body {
+    @apply bg-white text-text-dark font-sans antialiased min-h-screen;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white font-bold px-8 py-4 rounded-xl transition-all hover:bg-primary-hover active:scale-95 flex items-center justify-center w-full;
+  }
+
+  .input-field-light {
+    @apply w-full p-4 bg-white border border-slate-200 rounded-xl text-text-dark focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-slate-400;
+  }
+
+  .social-btn {
+    @apply flex items-center justify-center p-4 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100 transition-colors w-full;
+  }
+}
+
+@layer utilities {
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
