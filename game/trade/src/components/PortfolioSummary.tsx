@@ -18,22 +18,22 @@ export default function PortfolioSummary() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
             <SummaryCard
                 label="Net Account Value"
-                value={`$${netValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                value={`₹${netValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 icon={DollarSign}
             />
             <SummaryCard
                 label="Buying Power"
-                value={`$${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                value={`₹${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 icon={Activity}
             />
             <SummaryCard
                 label="Market Value"
-                value={`$${marketValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                value={`₹${marketValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 icon={TrendingUp}
             />
             <SummaryCard
                 label="Unrealized P&L"
-                value={`${unrealizedPL >= 0 ? '+' : ''}$${unrealizedPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                value={`${unrealizedPL >= 0 ? '+' : ''}₹${unrealizedPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 subValue={`${unrealizedPL >= 0 ? '+' : ''}${plPercent.toFixed(2)}%`}
                 color={unrealizedPL >= 0 ? 'var(--up)' : 'var(--down)'}
                 icon={unrealizedPL >= 0 ? TrendingUp : TrendingDown}

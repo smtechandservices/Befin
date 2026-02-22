@@ -25,9 +25,17 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
         const saved = localStorage.getItem('paper_trading_portfolio');
         if (saved) {
             const { balance, positions, history } = JSON.parse(saved);
-            setBalance(balance);
-            setPositions(positions);
-            setHistory(history);
+
+            // Invalidate legacy static stocks like AAPL (Apple)
+            const isLegacy = positions?.some((p: Position) => !p.symbol.endsWith('.NS')) || history?.some((h: Trade) => !h.symbol.endsWith('.NS'));
+
+            if (!isLegacy) {
+                setBalance(balance);
+                setPositions(positions);
+                setHistory(history);
+            } else {
+                localStorage.removeItem('paper_trading_portfolio');
+            }
         }
     }, []);
 

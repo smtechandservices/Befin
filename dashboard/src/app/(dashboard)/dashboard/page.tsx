@@ -24,22 +24,9 @@ export default function DashboardHome() {
 
     const { user, wallet } = data;
 
-    // Static transactions for UI demo (would come from DB in real app)
-    const transactions = [
-        { id: 1, title: 'Mobile Recharge', date: '12 Aug 2022 | 10:00', amount: '-₹666.00', type: 'debit' },
-        { id: 2, title: 'Electricity Bill', date: '03 Aug 2022 | 14:00', amount: '-₹14,000.00', type: 'debit' },
-        { id: 3, title: 'Rent Payment', date: '31 July 2022 | 21:00', amount: '+₹8,500.00', type: 'credit' },
-        { id: 4, title: 'DLF Emporio', date: '10 June 2022 | 18:00', amount: '-₹24,999.00', type: 'debit' },
-    ];
-
-    const expenses = [
-        { name: 'Housing', amount: '$250.00', percent: 15, trend: 'up', icon: '🏠' },
-        { name: 'Food', amount: '$350.00', percent: 8, trend: 'down', icon: '🍔' },
-        { name: 'Transportation', amount: '$50.00', percent: 12, trend: 'down', icon: '🚗' },
-        { name: 'Entertainment', amount: '$80.00', percent: 15, trend: 'down', icon: '🎬' },
-        { name: 'Shopping', amount: '$420.00', percent: 25, trend: 'up', icon: '🛍️' },
-        { name: 'Others', amount: '$650.00', percent: 23, trend: 'up', icon: '📦' },
-    ];
+    const realTransactions = wallet.transactions ? [...wallet.transactions].reverse() : [];
+    const totalIncome = realTransactions.filter((tx: any) => tx.transaction_type === 'reward' || tx.transaction_type === 'deposit').reduce((acc: number, tx: any) => acc + parseFloat(tx.amount), 0);
+    const totalExpenses = realTransactions.filter((tx: any) => tx.transaction_type === 'purchase' || tx.transaction_type === 'withdrawal').reduce((acc: number, tx: any) => acc + parseFloat(tx.amount), 0);
 
     return (
         <div className="max-w-[1600px] mx-auto space-y-6 text-white pb-10">
@@ -68,11 +55,11 @@ export default function DashboardHome() {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="bg-[#12141A] p-4 rounded-2xl">
                                 <div className="text-[#888888] text-sm mb-1 flex items-center gap-2">Income <span className="text-green-500 text-xs">📈</span></div>
-                                <div className="text-xl font-bold">₹24,00,000.00</div>
+                                <div className="text-xl font-bold">₹{totalIncome.toFixed(2)}</div>
                             </div>
                             <div className="bg-[#12141A] p-4 rounded-2xl">
                                 <div className="text-[#888888] text-sm mb-1 flex items-center gap-2">Expenses <span className="text-red-500 text-xs">📉</span></div>
-                                <div className="text-xl font-bold">₹36,000.00</div>
+                                <div className="text-xl font-bold">₹{totalExpenses.toFixed(2)}</div>
                             </div>
                         </div>
                     </div>
@@ -133,33 +120,8 @@ export default function DashboardHome() {
                         </div>
                     </div>
 
-                    {/* Expenses Breakdown */}
-                    <div className="bg-[#1C1F26] rounded-[24px] p-6">
-                        <h2 className="text-xl font-bold mb-6">Expenses Breakdown</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-                            {expenses.map((expense, i) => (
-                                <div key={i} className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-[#252A36] rounded-xl flex items-center justify-center text-xl shrink-0">
-                                        {expense.icon}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-end mb-1">
-                                            <div className="truncate">
-                                                <div className="text-xs text-[#888888]">{expense.name}</div>
-                                                <div className="font-bold">{expense.amount}</div>
-                                            </div>
-                                            <div className="text-right flex flex-col items-end">
-                                                <ArrowUpRight className="w-4 h-4 text-[#444444]" />
-                                                <div className={`text-xs flex items-center gap-1 ${expense.trend === 'up' ? 'text-red-400' : 'text-green-400'}`}>
-                                                    {expense.percent}% {expense.trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+
+
                 </div>
 
                 {/* Right Column (Transactions) */}
@@ -169,20 +131,25 @@ export default function DashboardHome() {
                             <h2 className="text-xl font-bold">Recent Transactions</h2>
                         </div>
                         <div className="space-y-6">
-                            {transactions.map(tx => (
-                                <div key={tx.id} className="flex items-center gap-4 group">
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${tx.type === 'credit' ? 'bg-[#0A2635] text-cyan-400' : 'bg-[#1C2635] text-blue-400'}`}>
-                                        {tx.type === 'credit' ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+                            {realTransactions.length > 0 ? realTransactions.map((tx: any) => {
+                                const isCredit = tx.transaction_type === 'reward' || tx.transaction_type === 'deposit';
+                                return (
+                                    <div key={tx.id} className="flex items-center gap-4 group">
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${isCredit ? 'bg-[#0A2635] text-cyan-400' : 'bg-[#1C2635] text-blue-400'}`}>
+                                            {isCredit ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="font-medium text-sm truncate">{tx.description || (isCredit ? 'Received BeCoins' : 'Spent BeCoins')}</div>
+                                            <div className="text-xs text-[#888888] truncate">{new Date(tx.timestamp).toLocaleString()}</div>
+                                        </div>
+                                        <div className="font-bold shrink-0 text-white">
+                                            {isCredit ? '+' : '-'}₹{parseFloat(tx.amount).toFixed(2)}
+                                        </div>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="font-medium text-sm truncate">{tx.title}</div>
-                                        <div className="text-xs text-[#888888] truncate">{tx.date}</div>
-                                    </div>
-                                    <div className={`font-bold shrink-0 ${tx.type === 'credit' ? 'text-white' : 'text-white'}`}>
-                                        {tx.amount}
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            }) : (
+                                <div className="text-sm text-[#888888]">No recent transactions.</div>
+                            )}
                         </div>
                     </div>
                 </div>

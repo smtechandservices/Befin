@@ -30,27 +30,29 @@ export default function TradingChart({ symbol }: { symbol: string }) {
             wickDownColor: '#f85149',
         });
 
-        // Mock initial data
-        const data = [];
-        let time = new Date(Date.now() - 100 * 24 * 60 * 60 * 1000);
-        let lastPrice = 150;
+        const fetchData = async () => {
+            try {
+                const res = await fetch(`http://localhost:8000/api/market/history/?symbol=${symbol}&period=1mo`);
+                const data = await res.json();
 
-        for (let i = 0; i < 100; i++) {
-            const open = lastPrice + (Math.random() - 0.5) * 5;
-            const high = open + Math.random() * 3;
-            const low = open - Math.random() * 3;
-            const close = (high + low) / 2;
-            data.push({
-                time: (time.getTime() / 1000) as any,
-                open,
-                high,
-                low,
-                close,
-            });
-            lastPrice = close;
-            time.setDate(time.getDate() + 1);
-        }
-        candlestickSeries.setData(data);
+                if (data.history && data.history.length > 0) {
+                    const formattedData = data.history.map((h: any) => ({
+                        time: (new Date(h.time).getTime() / 1000) as any,
+                        open: h.open,
+                        high: h.high,
+                        low: h.low,
+                        close: h.close
+                    })).sort((a: any, b: any) => a.time - b.time);
+
+                    candlestickSeries.setData(formattedData);
+                    chart.timeScale().fitContent();
+                }
+            } catch (err) {
+                console.error("Failed to fetch historical data", err);
+            }
+        };
+
+        fetchData();
 
         const handleResize = () => {
             if (chartContainerRef.current) {

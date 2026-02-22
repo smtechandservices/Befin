@@ -12,7 +12,7 @@ import { redirect } from 'next/navigation';
 
 export default function DashboardPage() {
     const { user, isLoading } = useAuth();
-    const [selectedSymbol, setSelectedSymbol] = useState('AAPL');
+    const [selectedSymbol, setSelectedSymbol] = useState('RELIANCE.NS');
 
     if (isLoading) return <div className="flex-center" style={{ height: '100vh' }}>Loading...</div>;
     if (!user) redirect('/login');

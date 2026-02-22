@@ -33,7 +33,7 @@ export default function Watchlist({ onSelect }: { onSelect: (symbol: string) => 
                             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{stock.name}</div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>${stock.price.toFixed(2)}</div>
+                            <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>₹{stock.price.toFixed(2)}</div>
                             <div
                                 style={{
                                     fontSize: '0.75rem',

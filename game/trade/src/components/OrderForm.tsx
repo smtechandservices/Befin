@@ -95,7 +95,7 @@ export default function OrderForm({ symbol }: { symbol: string }) {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>Estimated Total</span>
-                    <span style={{ fontWeight: 700 }}>${estimatedTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <span style={{ fontWeight: 700 }}>₹{estimatedTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
             </div>
 
@@ -116,7 +116,7 @@ export default function OrderForm({ symbol }: { symbol: string }) {
             </button>
 
             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                Buying Power: <span style={{ color: 'white' }}>${balance.toLocaleString()}</span>
+                Buying Power: <span style={{ color: 'white' }}>₹{balance.toLocaleString()}</span>
             </div>
         </div>
     );

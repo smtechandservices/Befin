@@ -18,16 +18,16 @@ export function MarketDataProvider({ children }: { children: React.ReactNode }) 
         try {
             const results = await Promise.all(
                 INDIAN_STOCKS.map(async (s) => {
-                    const res = await fetch(`/api/stocks/${s.symbol}`);
+                    const res = await fetch(`http://localhost:8000/api/market/quote/?symbol=${s.symbol}`);
                     const data = await res.json();
                     return {
                         symbol: s.symbol,
-                        name: s.name,
-                        price: data.regularMarketPrice || 0,
-                        change: data.regularMarketChange || 0,
-                        changePercent: data.regularMarketChangePercent || 0,
-                        volume: data.regularMarketVolume || 0,
-                        marketCap: data.marketCap || 0,
+                        name: data.name || s.name,
+                        price: data.price || 0,
+                        change: data.change || 0,
+                        changePercent: data.change_percent || 0,
+                        volume: data.volume || 0,
+                        marketCap: 0,
                     };
                 })
             );

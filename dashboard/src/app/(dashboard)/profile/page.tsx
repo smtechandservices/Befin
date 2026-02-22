@@ -46,20 +46,20 @@ export default function ProfilePage() {
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-8 border-t border-white/10">
                             <div className="text-center md:text-left">
-                                <div className="text-2xl font-black text-white">{wallet.level}</div>
+                                <div className="text-2xl font-black text-white">{Math.floor(parseFloat(wallet.balance) / 1000) + 1}</div>
                                 <div className="text-xs font-medium text-text-secondary uppercase tracking-wider mt-1">Level</div>
                             </div>
                             <div className="text-center md:text-left">
-                                <div className="text-2xl font-black text-gold">{wallet.balance}</div>
+                                <div className="text-2xl font-black text-gold">{parseFloat(wallet.balance).toFixed(0)}</div>
                                 <div className="text-xs font-medium text-text-secondary uppercase tracking-wider mt-1">BeCoins</div>
                             </div>
                             <div className="text-center md:text-left">
-                                <div className="text-2xl font-black text-[#FF5A5F]">{wallet.streak}</div>
-                                <div className="text-xs font-medium text-text-secondary uppercase tracking-wider mt-1">Day Streak</div>
+                                <div className="text-2xl font-black text-[#FF5A5F]">{wallet.transactions?.length || 0}</div>
+                                <div className="text-xs font-medium text-text-secondary uppercase tracking-wider mt-1">Transfers</div>
                             </div>
                             <div className="text-center md:text-left">
-                                <div className="text-2xl font-black text-accent">{completedQuests?.length || 0}</div>
-                                <div className="text-xs font-medium text-text-secondary uppercase tracking-wider mt-1">Quests</div>
+                                <div className="text-2xl font-black text-accent">{wallet.card ? 1 : 0}</div>
+                                <div className="text-xs font-medium text-text-secondary uppercase tracking-wider mt-1">Cards</div>
                             </div>
                         </div>
                     </div>
