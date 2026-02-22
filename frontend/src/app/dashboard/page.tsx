@@ -122,7 +122,7 @@ export default function Dashboard() {
                                                 <TrendingUp className="text-green-500 w-3 h-3" />
                                             </div>
                                             <div className="text-2xl font-bold text-white tracking-tight">
-                                                ₹ {wallet?.balance ? parseFloat(wallet.balance).toLocaleString('en-IN') : '24,00,000.00'}
+                                                {wallet?.balance ? parseFloat(wallet.balance).toLocaleString() : '2,400,000'} BeFin Coins
                                             </div>
                                         </div>
                                         <div className="bg-[#111115] rounded-2xl p-4 border border-white/5 flex flex-col gap-1">
@@ -131,7 +131,7 @@ export default function Dashboard() {
                                                 <TrendingDown className="text-red-500 w-3 h-3" />
                                             </div>
                                             <div className="text-2xl font-bold text-white tracking-tight">
-                                                ₹ 36,000.00
+                                                36,000 BeFin Coins
                                             </div>
                                         </div>
                                     </div>
@@ -146,7 +146,7 @@ export default function Dashboard() {
                                         Refer &<br />Earn
                                     </h3>
                                     <p className="text-slate-400 text-xs mt-1 max-w-[140px] font-medium leading-relaxed relative z-10">
-                                        Guaranteed cashback upto ₹1000 on every referral.
+                                        Guaranteed cashback upto 1000 BeFin Coins on every referral.
                                     </p>
                                     <button className="mt-2 bg-[#0380f5] text-white text-xs font-bold px-6 py-2.5 rounded-full w-fit hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20 relative z-10">
                                         Let's go -{'>'}
@@ -221,10 +221,10 @@ export default function Dashboard() {
                                     // Placeholder entries like the image if real DB is empty
                                     <>
                                         {[
-                                            { title: 'Mobile Recharge', date: '12 Aug 2022 | 10:00', amount: '-₹666.00', isNegative: true },
-                                            { title: 'Electricity Bill', date: '03 Aug 2022 | 14:00', amount: '-₹14,000.00', isNegative: true },
-                                            { title: 'Rent Payment', date: '31 July 2022 | 21:00', amount: '+₹8,500.00', isNegative: false },
-                                            { title: 'DLF Emporio', date: '10 June 2022 | 18:00', amount: '-₹24,999.00', isNegative: true },
+                                            { title: 'Mobile Recharge', date: '12 Aug 2022 | 10:00', amount: '-666 BeFin Coins', isNegative: true },
+                                            { title: 'Electricity Bill', date: '03 Aug 2022 | 14:00', amount: '-14,000 BeFin Coins', isNegative: true },
+                                            { title: 'Rent Payment', date: '31 July 2022 | 21:00', amount: '+8,500 BeFin Coins', isNegative: false },
+                                            { title: 'DLF Emporio', date: '10 June 2022 | 18:00', amount: '-24,999 BeFin Coins', isNegative: true },
                                         ].map((tx, idx) => (
                                             <div key={idx} className="flex items-center justify-between p-4 rounded-2xl hover:bg-[#1c1c24] transition-colors group cursor-pointer border-b border-white/5 last:border-0 border-solid">
                                                 <div className="flex items-center gap-4">
@@ -266,7 +266,7 @@ export default function Dashboard() {
                                                         </div>
                                                     </div>
                                                     <div className={`font-bold text-[14px] ${!isDeposit ? 'text-white' : 'text-[#0380f5]'}`}>
-                                                        {isDeposit ? '+' : '-'}₹{parseFloat(tx.amount).toLocaleString('en-IN')}
+                                                        {isDeposit ? '+' : '-'}{parseFloat(tx.amount).toLocaleString()} BeFin Coins
                                                     </div>
                                                 </div>
                                             );

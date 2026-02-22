@@ -64,7 +64,7 @@ export default function WalletPage() {
 
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto px-10 pb-10 no-scrollbar">
-                    <div className="flex flex-col gap-8 max-w-5xl mx-auto">
+                    <div className="flex flex-col gap-8 mx-auto">
 
                         {/* Top Section: Balance & Actions */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -77,7 +77,7 @@ export default function WalletPage() {
                                 </div>
                                 <div className="relative z-10 mt-4 mb-8">
                                     <h2 className="text-5xl font-bold tracking-tight text-white">
-                                        ₹ {wallet?.balance ? parseFloat(wallet.balance).toLocaleString('en-IN') : '0.00'}
+                                        {wallet?.balance ? parseFloat(wallet.balance).toLocaleString() : '0'} BeFin Coins
                                     </h2>
                                 </div>
                                 <div className="relative z-10 flex gap-4">
@@ -143,7 +143,7 @@ export default function WalletPage() {
                                                     </div>
                                                     <div className="flex items-center gap-6 mt-4 sm:mt-0">
                                                         <div className={`font-bold text-[16px] ${!isDeposit ? 'text-white' : 'text-[#0380f5]'}`}>
-                                                            {isDeposit ? '+' : '-'}₹{parseFloat(tx.amount).toLocaleString('en-IN')}
+                                                            {isDeposit ? '+' : '-'}{parseFloat(tx.amount).toLocaleString()} BeFin Coins
                                                         </div>
                                                         <div className="hidden sm:flex text-slate-500 hover:text-white transition-colors">
                                                             <ExternalLink className="w-5 h-5" />
