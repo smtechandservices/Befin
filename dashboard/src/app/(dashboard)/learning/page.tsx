@@ -43,7 +43,7 @@ export default function LearningPage() {
                     </p>
                     {/* Hardcoded to React default port 3001 or standard per instructions */}
                     <a
-                        href="http://localhost:3001"
+                        href="http://localhost:3001/dashboard"
                         target="_blank" rel="noopener noreferrer"
                         className="w-full py-3 bg-[#2196F3] hover:bg-[#1E88E5] text-white rounded-xl font-bold flex justify-center items-center gap-2 transition-colors shadow-lg shadow-[#2196F3]/20"
                     >

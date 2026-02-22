@@ -10,7 +10,7 @@ export async function getSession() {
 export async function setSessionCookie(token: string) {
     const cookieStore = await cookies();
     cookieStore.set('befin_token', token, {
-        httpOnly: true,
+        httpOnly: false, // Set to false to allow client-side games (Vite/React) to read the token across localhost origin
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60, // 7 days

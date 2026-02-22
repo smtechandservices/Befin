@@ -43,6 +43,36 @@ function App() {
   const timerRef = useRef(null);
 
   useEffect(() => {
+    // Read the shared befin_token cookie set by the Dashboard on localhost
+    const getCookie = (name) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    };
+
+    const token = getCookie('befin_token');
+    if (!token) {
+      window.location.href = 'http://localhost:3000/login';
+      return;
+    }
+
+    // 2. Fetch User Profile
+    fetch('http://localhost:8000/api/users/profile/', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Auth failed');
+        return res.json();
+      })
+      .then(data => {
+        setUsername(data.username);
+      })
+      .catch(() => {
+        localStorage.removeItem('befin_token');
+        window.location.href = 'http://localhost:3000/login';
+      });
+
     const saved = localStorage.getItem(LEADERBOARD_KEY);
     if (saved) setLeaderboard(JSON.parse(saved));
     setShuffledLetters([...ALL_LETTERS].sort(() => Math.random() - 0.5));
@@ -95,10 +125,21 @@ function App() {
 
     // BeFin Dashboard Sync
     if (username) {
+      const getCookie = (name) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+      };
+      const token = getCookie('befin_token');
+
       try {
-        await fetch('http://localhost:3000/api/wallet/award', {
+        await fetch('http://localhost:8000/api/wallet/award/', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify({
             username,
             coins: Math.floor(score / 10),
@@ -106,7 +147,6 @@ function App() {
             game_score: score
           })
         });
-        // We could show a toast here, but the WIN screen will handle it
       } catch (err) {
         console.error('Failed to sync BeCoins', err);
       }
@@ -214,14 +254,16 @@ function App() {
           </div>
 
           <form onSubmit={startGame} className="input-group">
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoFocus
-            />
-            <button type="submit" className="elite-btn">Launch Portfolio</button>
+            {username ? (
+              <div style={{ marginBottom: '15px', color: 'var(--gold)', fontWeight: 'bold' }}>
+                Welcome back, {username}!
+              </div>
+            ) : (
+              <div style={{ marginBottom: '15px', color: '#888' }}>
+                Authenticating...
+              </div>
+            )}
+            <button type="submit" className="elite-btn" disabled={!username}>Launch Portfolio</button>
           </form>
 
           <div className="leaderboard">

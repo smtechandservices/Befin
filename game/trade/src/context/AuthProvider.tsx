@@ -21,11 +21,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
 
     useEffect(() => {
-        const saved = localStorage.getItem('paper_trading_user');
-        if (saved) {
-            setUser(JSON.parse(saved));
+        // Read the shared befin_token cookie set by the Dashboard on localhost
+        const getCookie = (name: string) => {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+            return null;
+        };
+
+        const token = getCookie('befin_token');
+
+        if (token) {
+            // 2. Fetch User Profile from Django
+            fetch('http://localhost:8000/api/users/profile/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error('Auth failed');
+                    return res.json();
+                })
+                .then(data => {
+                    setUser({
+                        id: data.id?.toString() || '1',
+                        email: data.email,
+                        name: data.username,
+                        isDematActive: true, // Auto-skip onboarding for SSO users
+                        balance: 100000,
+                    });
+                    setIsLoading(false);
+                })
+                .catch(() => {
+                    localStorage.removeItem('befin_token');
+                    setIsLoading(false);
+                });
+        } else {
+            // Fallback to local mock if no token (for dev purposes)
+            const saved = localStorage.getItem('paper_trading_user');
+            if (saved) {
+                setUser(JSON.parse(saved));
+            }
+            setIsLoading(false);
         }
-        setIsLoading(false);
     }, []);
 
     useEffect(() => {
@@ -64,7 +100,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const logout = () => {
         setUser(null);
-        router.push('/login');
+        document.cookie = 'befin_token=; Max-Age=0; path=/; domain=localhost;';
+        router.push('http://localhost:3000/login');
     };
 
     const completeOnboarding = () => {

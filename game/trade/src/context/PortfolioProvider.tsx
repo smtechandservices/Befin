@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Position, Trade, Portfolio } from '../types';
+import { useAuth } from './AuthProvider';
 
 interface PortfolioContextType extends Portfolio {
     buyStock: (symbol: string, quantity: number, price: number) => void;
@@ -17,6 +18,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     const [balance, setBalance] = useState(INITIAL_BALANCE);
     const [positions, setPositions] = useState<Position[]>([]);
     const [history, setHistory] = useState<Trade[]>([]);
+    const { user } = useAuth();
 
     // Persistence (localStorage)
     useEffect(() => {
@@ -71,18 +73,26 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
         setBalance((prev) => prev + credit);
 
         const profit = (price - position.averagePrice) * quantity;
-        if (profit > 0) {
+        if (profit > 0 && user) {
             const coins = Math.floor(profit / 10);
             if (coins > 0) {
                 setTimeout(() => {
-                    const username = window.localStorage.getItem('befin_username') || window.prompt(`You made a profit! Enter your BeFin Username to claim your ${coins} BeCoins:`);
-                    if (username) {
-                        window.localStorage.setItem('befin_username', username);
-                        fetch('http://localhost:3000/api/wallet/award', {
+                    const getCookie = (name: string) => {
+                        const value = `; ${document.cookie}`;
+                        const parts = value.split(`; ${name}=`);
+                        if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+                        return null;
+                    };
+                    const token = getCookie('befin_token');
+                    if (token) {
+                        fetch('http://localhost:8000/api/wallet/award/', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
                             body: JSON.stringify({
-                                username,
+                                username: user.name, // useAuth maps Django username to user.name
                                 coins,
                                 source: 'paper-trade',
                                 game_score: Math.floor(profit)
