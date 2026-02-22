@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createChart, ColorType, CandlestickSeries } from 'lightweight-charts';
 
 export default function TradingChart({ symbol }: { symbol: string }) {
     const chartContainerRef = useRef<HTMLDivElement>(null);
+    const [timeframe, setTimeframe] = useState('1M');
 
     useEffect(() => {
         if (!chartContainerRef.current) return;
@@ -31,8 +32,16 @@ export default function TradingChart({ symbol }: { symbol: string }) {
         });
 
         const fetchData = async () => {
+            let period = '1mo';
+            let interval = '60m';
+            if (timeframe === '1D') { period = '1d'; interval = '5m'; }
+            else if (timeframe === '1W') { period = '5d'; interval = '15m'; }
+            else if (timeframe === '1M') { period = '1mo'; interval = '60m'; }
+            else if (timeframe === '1Y') { period = '1y'; interval = '1d'; }
+            else if (timeframe === 'ALL') { period = 'max'; interval = '1wk'; }
+
             try {
-                const res = await fetch(`http://localhost:8000/api/market/history/?symbol=${symbol}&period=1mo`);
+                const res = await fetch(`http://localhost:8000/api/market/history/?symbol=${symbol}&period=${period}&interval=${interval}`);
                 const data = await res.json();
 
                 if (data.history && data.history.length > 0) {
@@ -66,7 +75,7 @@ export default function TradingChart({ symbol }: { symbol: string }) {
             window.removeEventListener('resize', handleResize);
             chart.remove();
         };
-    }, [symbol]);
+    }, [symbol, timeframe]);
 
     return (
         <div className="card" style={{ padding: '1rem', flex: 1 }}>
@@ -74,7 +83,18 @@ export default function TradingChart({ symbol }: { symbol: string }) {
                 <div style={{ fontWeight: 700, fontSize: '1.25rem' }}>{symbol}</div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                     {['1D', '1W', '1M', '1Y', 'ALL'].map((tf) => (
-                        <button key={tf} style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', borderRadius: '4px', background: tf === '1D' ? 'var(--divider)' : 'transparent', color: tf === '1D' ? 'white' : 'var(--text-secondary)' }}>
+                        <button
+                            key={tf}
+                            onClick={() => setTimeframe(tf)}
+                            style={{
+                                fontSize: '0.75rem',
+                                padding: '0.25rem 0.5rem',
+                                borderRadius: '4px',
+                                background: tf === timeframe ? 'var(--divider)' : 'transparent',
+                                color: tf === timeframe ? 'white' : 'var(--text-secondary)',
+                                cursor: 'pointer'
+                            }}
+                        >
                             {tf}
                         </button>
                     ))}

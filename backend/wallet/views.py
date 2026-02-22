@@ -127,3 +127,48 @@ class GoalDetailView(APIView):
             
         goal.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class TradeStockView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        action = request.data.get('action') # 'buy' or 'sell'
+        symbol = request.data.get('symbol')
+        quantity = request.data.get('quantity')
+        price = request.data.get('price')
+
+        if not all([action, symbol, quantity, price]):
+            return Response({'error': 'Missing required fields'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            quantity = float(quantity)
+            price = float(price)
+            total_cost = quantity * price
+        except ValueError:
+            return Response({'error': 'Invalid quantity or price'}, status=status.HTTP_400_BAD_REQUEST)
+
+        wallet, created = Wallet.objects.get_or_create(user=request.user)
+
+        if action == 'buy':
+            if wallet.balance < total_cost:
+                return Response({'error': 'Insufficient BeCoins'}, status=status.HTTP_400_BAD_REQUEST)
+            wallet.balance -= total_cost
+            transaction_type = 'purchase'
+            description = f"Bought {quantity} shares of {symbol} at ₹{price:.2f}"
+        elif action == 'sell':
+            wallet.balance += total_cost
+            transaction_type = 'deposit'
+            description = f"Sold {quantity} shares of {symbol} at ₹{price:.2f}"
+        else:
+            return Response({'error': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
+
+        wallet.save()
+
+        Transaction.objects.create(
+            wallet=wallet,
+            amount=total_cost,
+            transaction_type=transaction_type,
+            description=description
+        )
+
+        return Response({'success': True, 'balance': wallet.balance})

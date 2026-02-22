@@ -5,8 +5,8 @@ import { Position, Trade, Portfolio } from '../types';
 import { useAuth } from './AuthProvider';
 
 interface PortfolioContextType extends Portfolio {
-    buyStock: (symbol: string, quantity: number, price: number) => void;
-    sellStock: (symbol: string, quantity: number, price: number) => void;
+    buyStock: (symbol: string, quantity: number, price: number) => Promise<void>;
+    sellStock: (symbol: string, quantity: number, price: number) => Promise<void>;
     resetPortfolio: () => void;
 }
 
@@ -20,111 +20,155 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     const [history, setHistory] = useState<Trade[]>([]);
     const { user } = useAuth();
 
-    // Persistence (localStorage)
+    // Persistence (localStorage) and Real Balance Sync
     useEffect(() => {
         const saved = localStorage.getItem('paper_trading_portfolio');
         if (saved) {
-            const { balance, positions, history } = JSON.parse(saved);
+            const { positions, history } = JSON.parse(saved);
 
             // Invalidate legacy static stocks like AAPL (Apple)
             const isLegacy = positions?.some((p: Position) => !p.symbol.endsWith('.NS')) || history?.some((h: Trade) => !h.symbol.endsWith('.NS'));
 
             if (!isLegacy) {
-                setBalance(balance);
-                setPositions(positions);
-                setHistory(history);
+                setPositions(positions || []);
+                setHistory(history || []);
             } else {
                 localStorage.removeItem('paper_trading_portfolio');
             }
         }
+
+        // Fetch real balance from Wallet
+        const getCookie = (name: string) => {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+            return null;
+        };
+        const token = getCookie('befin_token');
+        if (token) {
+            fetch('http://localhost:8000/api/wallet/balance/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.balance !== undefined) {
+                        setBalance(parseFloat(data.balance));
+                    }
+                })
+                .catch(console.error);
+        }
     }, []);
 
     useEffect(() => {
-        localStorage.setItem('paper_trading_portfolio', JSON.stringify({ balance, positions, history }));
-    }, [balance, positions, history]);
+        // We do not save balance to localStorage anymore, only positions/history
+        localStorage.setItem('paper_trading_portfolio', JSON.stringify({ positions, history }));
+    }, [positions, history]);
 
-    const buyStock = (symbol: string, quantity: number, price: number) => {
+    const getCookie = (name: string) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+        return null;
+    };
+
+    const buyStock = async (symbol: string, quantity: number, price: number) => {
         const cost = quantity * price;
         if (cost > balance) {
-            alert('Insufficient buying power!');
+            alert('Insufficient buying power (BeCoins)!');
             return;
         }
 
-        setBalance((prev) => prev - cost);
+        const token = getCookie('befin_token');
+        if (!token) {
+            alert('Not authenticated!'); return;
+        }
 
-        setPositions((prev) => {
-            const existing = prev.find((p) => p.symbol === symbol);
-            if (existing) {
-                const newQuantity = existing.quantity + quantity;
-                const newAvgPrice = (existing.averagePrice * existing.quantity + cost) / newQuantity;
-                return prev.map((p) =>
-                    p.symbol === symbol ? { ...p, quantity: newQuantity, averagePrice: newAvgPrice } : p
-                );
+        try {
+            const res = await fetch('http://localhost:8000/api/wallet/trade/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ action: 'buy', symbol, quantity, price })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data.error || 'Failed to process trade.');
+                return;
             }
-            return [...prev, { symbol, quantity, averagePrice: price, currentPrice: price }];
-        });
 
-        setHistory((prev) => [
-            { id: Math.random().toString(36).substr(2, 9), symbol, type: 'BUY', quantity, price, timestamp: Date.now() },
-            ...prev,
-        ]);
+            setBalance(parseFloat(data.balance));
+
+            setPositions((prev) => {
+                const existing = prev.find((p) => p.symbol === symbol);
+                if (existing) {
+                    const newQuantity = existing.quantity + quantity;
+                    const newAvgPrice = (existing.averagePrice * existing.quantity + cost) / newQuantity;
+                    return prev.map((p) =>
+                        p.symbol === symbol ? { ...p, quantity: newQuantity, averagePrice: newAvgPrice } : p
+                    );
+                }
+                return [...prev, { symbol, quantity, averagePrice: price, currentPrice: price }];
+            });
+
+            setHistory((prev) => [
+                { id: Math.random().toString(36).substr(2, 9), symbol, type: 'BUY', quantity, price, timestamp: Date.now() },
+                ...prev,
+            ]);
+        } catch (error) {
+            console.error(error);
+            alert('Network error occurred.');
+        }
     };
 
-    const sellStock = (symbol: string, quantity: number, price: number) => {
+    const sellStock = async (symbol: string, quantity: number, price: number) => {
         const position = positions.find((p) => p.symbol === symbol);
         if (!position || position.quantity < quantity) {
             alert('Insufficient position quantity!');
             return;
         }
 
-        const credit = quantity * price;
-        setBalance((prev) => prev + credit);
-
-        const profit = (price - position.averagePrice) * quantity;
-        if (profit > 0 && user) {
-            const coins = Math.floor(profit / 10);
-            if (coins > 0) {
-                setTimeout(() => {
-                    const getCookie = (name: string) => {
-                        const value = `; ${document.cookie}`;
-                        const parts = value.split(`; ${name}=`);
-                        if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-                        return null;
-                    };
-                    const token = getCookie('befin_token');
-                    if (token) {
-                        fetch('http://localhost:8000/api/wallet/award/', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({
-                                username: user.name, // useAuth maps Django username to user.name
-                                coins,
-                                source: 'paper-trade',
-                                game_score: Math.floor(profit)
-                            })
-                        }).catch(err => console.error(err));
-                    }
-                }, 500);
-            }
+        const token = getCookie('befin_token');
+        if (!token) {
+            alert('Not authenticated!'); return;
         }
 
-        setPositions((prev) => {
-            const updated = prev.map((p) => {
-                if (p.symbol === symbol) {
-                    return { ...p, quantity: p.quantity - quantity };
-                }
-                return p;
-            }).filter((p) => p.quantity > 0);
-            return updated;
-        });
+        try {
+            const res = await fetch('http://localhost:8000/api/wallet/trade/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ action: 'sell', symbol, quantity, price })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data.error || 'Failed to process trade.');
+                return;
+            }
 
-        setHistory((prev) => [
-            { id: Math.random().toString(36).substr(2, 9), symbol, type: 'SELL', quantity, price, timestamp: Date.now() },
-            ...prev,
-        ]);
+            setBalance(parseFloat(data.balance));
+
+            setPositions((prev) => {
+                const updated = prev.map((p) => {
+                    if (p.symbol === symbol) {
+                        return { ...p, quantity: p.quantity - quantity };
+                    }
+                    return p;
+                }).filter((p) => p.quantity > 0);
+                return updated;
+            });
+
+            setHistory((prev) => [
+                { id: Math.random().toString(36).substr(2, 9), symbol, type: 'SELL', quantity, price, timestamp: Date.now() },
+                ...prev,
+            ]);
+        } catch (error) {
+            console.error(error);
+            alert('Network error occurred.');
+        }
     };
 
     const resetPortfolio = () => {
