@@ -1,31 +1,25 @@
-import api from './api';
+import { cookies } from 'next/headers';
 
-export const authService = {
-    register: async (userData: any) => {
-        const response = await api.post('/users/register/', userData);
-        return response.data;
-    },
+export async function getSession() {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('befin_token')?.value;
+    if (!token) return null;
+    return token;
+}
 
-    login: async (credentials: any) => {
-        const response = await api.post('/users/login/', credentials);
-        if (response.data.access) {
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('access_token', response.data.access);
-                localStorage.setItem('refresh_token', response.data.refresh);
-            }
-        }
-        return response.data;
-    },
+export async function setSessionCookie(token: string) {
+    const cookieStore = await cookies();
+    cookieStore.set('befin_token', token, {
+        httpOnly: false, // Set to false to allow client-side games (Vite/React) to read the token across localhost origin
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60, // 7 days
+        path: '/',
+    });
+}
 
-    logout: () => {
-        if (typeof window !== 'undefined') {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-        }
-    },
+export async function clearSessionCookie() {
+    const cookieStore = await cookies();
+    cookieStore.delete('befin_token');
+}
 
-    getProfile: async () => {
-        const response = await api.get('/users/profile/');
-        return response.data;
-    },
-};

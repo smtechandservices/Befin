@@ -2,55 +2,84 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
-import { Home, Wallet, Target, BookOpen, History, User, LogOut } from 'lucide-react';
-import { authService } from '../lib/auth';
+import { usePathname } from 'next/navigation';
+import { LayoutDashboard, LineChart, Wallet, History, Settings, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthProvider';
+
+const NAV_ITEMS = [
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+    { icon: LineChart, label: 'Market', href: '/market' },
+    { icon: Wallet, label: 'Portfolio', href: '/portfolio' },
+    { icon: History, label: 'History', href: '/history' },
+];
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const router = useRouter();
-
-    const handleLogout = () => {
-        authService.logout();
-        router.push('/login');
-    };
-
-    const links = [
-        { name: 'Home', icon: Home, href: '/dashboard' },
-        { name: 'Wallet', icon: Wallet, href: '/wallet' },
-        { name: 'Goal Setter', icon: Target, href: '#' },
-        { name: 'Learning', icon: BookOpen, href: '#' },
-        { name: 'History', icon: History, href: '#' },
-        { name: 'Profile', icon: User, href: '#' },
-    ];
+    const { logout, user } = useAuth();
 
     return (
-        <aside className="w-[240px] bg-[#14141d] flex flex-col justify-between hidden md:flex shrink-0 border-r border-white/5">
-            <div>
-                <div className="flex items-center gap-3 px-8 py-8">
-                    <Image src="/images/logo.png" alt="BeFin Logo" width={32} height={32} className="object-contain" />
-                    <span className="text-2xl font-bold tracking-tight text-white">BeFin</span>
-                </div>
-
-                <nav className="flex flex-col gap-2 px-4 mt-4">
-                    {links.map((link) => {
-                        const Icon = link.icon;
-                        const isActive = pathname === link.href;
-                        return (
-                            <Link key={link.name} href={link.href} className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl font-medium transition-all ${isActive ? 'bg-[#1c1c24] text-[#0380f5]' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
-                                <Icon className={`w-5 h-5 ${isActive ? 'opacity-100' : 'opacity-60'}`} />
-                                {link.name}
-                            </Link>
-                        );
-                    })}
-                </nav>
+        <aside className="glass" style={{
+            width: '240px',
+            height: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '1.5rem 1rem',
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            zIndex: 100,
+        }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0 0.5rem 2rem', borderBottom: '1px solid var(--divider)', marginBottom: '1.5rem' }}>
+                <div style={{ width: '32px', height: '32px', background: 'var(--primary)', borderRadius: '6px' }} />
+                <span style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '-0.5px' }}>TradePro</span>
             </div>
 
-            <div className="p-4 mb-4">
-                <button onClick={handleLogout} className="flex items-center gap-4 w-full px-4 py-3.5 rounded-2xl font-medium text-red-400 hover:bg-red-400/10 transition-all">
-                    <LogOut className="w-5 h-5" />
-                    Logout
+            <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                {NAV_ITEMS.map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                padding: '0.75rem 1rem',
+                                borderRadius: '8px',
+                                color: isActive ? 'white' : 'var(--text-secondary)',
+                                background: isActive ? 'rgba(255,255,255,0.05)' : 'transparent',
+                                transition: 'all 0.2s ease',
+                            }}
+                            onMouseOver={(e) => !isActive && (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
+                            onMouseOut={(e) => !isActive && (e.currentTarget.style.background = 'transparent')}
+                        >
+                            <item.icon size={20} />
+                            <span style={{ fontWeight: 500 }}>{item.label}</span>
+                        </Link>
+                    );
+                })}
+            </nav>
+
+            <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Signed in as</p>
+                    <p style={{ fontSize: '0.875rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name}</p>
+                </div>
+
+                <button
+                    onClick={logout}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        padding: '0.75rem 1rem',
+                        color: 'var(--danger)',
+                        width: '100%',
+                    }}
+                >
+                    <LogOut size={20} />
+                    <span style={{ fontWeight: 500 }}>Log Out</span>
                 </button>
             </div>
         </aside>

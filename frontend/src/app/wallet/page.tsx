@@ -4,9 +4,8 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { authService } from '../../lib/auth';
-import { walletService } from '../../lib/wallet';
-import Sidebar from '../../components/Sidebar';
+import { authService } from '@/lib/auth.client';
+import { walletService } from '@/lib/wallet';
 import Navbar from '../../components/Navbar';
 import {
     Home, Wallet, Target, BookOpen, History, User, LogOut,
@@ -55,7 +54,7 @@ export default function WalletPage() {
     return (
         <div className="flex h-screen bg-[#111115] font-sans text-white overflow-hidden">
             {/* Left Sidebar */}
-            <Sidebar />
+            {/* <Sidebar /> removed to fix useAuth context error */}
 
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col h-full overflow-hidden">

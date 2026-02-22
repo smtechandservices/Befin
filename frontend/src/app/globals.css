@@ -1,12 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  /* Core Colors - New BeFin Blue Theme */
-  --color-primary: #0081ff;
-  /* Vibrant Blue */
-  --color-primary-hover: #0066cc;
-  --color-bg-brand: #0066ff;
-  /* Brand Background Blue */
+  /* Core Colors */
+  --color-primary: #0A66C2;
+  --color-primary-hover: #004182;
+  --color-bg-brand: #0A66C2;
+
+  /* Theme Colors for Tailwind v4 */
+  --color-background: #0D1117;
+  --color-surface: #1B212B;
+  --color-surface-hover: #262D38;
+  --color-accent: #0A66C2;
+  --color-error: #F85149;
+  --color-success: #3FB950;
+
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #8B949E;
   --color-text-dark: #1a1a1a;
   --color-text-muted: #666666;
 
@@ -18,10 +27,22 @@
   --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
 }
 
+:root {
+  --background: #0D1117;
+  --surface: #1B212B;
+  --surface-hover: #262D38;
+  --primary: #0A66C2;
+  --divider: #30363D;
+  --border: #30363D;
+  --text-primary: #FFFFFF;
+  --text-secondary: #8B949E;
+  --up: #3FB950;
+  --down: #F85149;
+}
 
 @layer base {
   body {
-    @apply bg-white text-text-dark font-sans antialiased min-h-screen;
+    @apply bg-background text-text-primary font-sans antialiased min-h-screen m-0 p-0;
   }
 }
 
