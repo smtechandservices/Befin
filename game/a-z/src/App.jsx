@@ -86,12 +86,31 @@ function App() {
     }
   };
 
-  const finishGame = () => {
+  const finishGame = async () => {
     const newEntry = { name: username || "Anonymous", score, date: new Date().toLocaleDateString() };
     const updated = [...leaderboard, newEntry].sort((a, b) => b.score - a.score).slice(0, 5);
     setLeaderboard(updated);
     localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(updated));
     setGameState('WIN');
+
+    // BeFin Dashboard Sync
+    if (username) {
+      try {
+        await fetch('http://localhost:3000/api/wallet/award', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username,
+            coins: Math.floor(score / 10),
+            source: 'finance-hero-az',
+            game_score: score
+          })
+        });
+        // We could show a toast here, but the WIN screen will handle it
+      } catch (err) {
+        console.error('Failed to sync BeCoins', err);
+      }
+    }
   };
 
   const triggerCoins = () => {

@@ -70,6 +70,29 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
         const credit = quantity * price;
         setBalance((prev) => prev + credit);
 
+        const profit = (price - position.averagePrice) * quantity;
+        if (profit > 0) {
+            const coins = Math.floor(profit / 10);
+            if (coins > 0) {
+                setTimeout(() => {
+                    const username = window.localStorage.getItem('befin_username') || window.prompt(`You made a profit! Enter your BeFin Username to claim your ${coins} BeCoins:`);
+                    if (username) {
+                        window.localStorage.setItem('befin_username', username);
+                        fetch('http://localhost:3000/api/wallet/award', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                username,
+                                coins,
+                                source: 'paper-trade',
+                                game_score: Math.floor(profit)
+                            })
+                        }).catch(err => console.error(err));
+                    }
+                }, 500);
+            }
+        }
+
         setPositions((prev) => {
             const updated = prev.map((p) => {
                 if (p.symbol === symbol) {
