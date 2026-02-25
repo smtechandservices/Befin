@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, Wallet, Target, BookOpen, History, User, LogOut } from 'lucide-react';
-import { authService } from '../lib/auth';
+import { authService } from '../lib/api';
 
 export default function Sidebar() {
     const pathname = usePathname();

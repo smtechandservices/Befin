@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import User
-from wallet.models import Wallet
+from wallet.models import Wallet, Transaction
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,6 +25,14 @@ class RegisterSerializer(serializers.ModelSerializer):
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', '')
         )
-        # Create wallet for the user automatically
-        Wallet.objects.create(user=user)
+        # Create wallet for the user automatically with 1000 reward coins
+        wallet = Wallet.objects.create(user=user, balance=1000.00)
+        
+        # Create a transaction record for the reward
+        Transaction.objects.create(
+            wallet=wallet,
+            amount=1000.00,
+            transaction_type='reward',
+            description='New User Reward'
+        )
         return user

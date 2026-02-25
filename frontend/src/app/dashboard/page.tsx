@@ -4,10 +4,10 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { authService } from '../../lib/auth';
-import { walletService } from '../../lib/wallet';
+import { authService, walletService } from '../../lib/api';
 import Sidebar from '../../components/Sidebar';
 import Navbar from '../../components/Navbar';
+import FinanceNews from '../../components/FinanceNews';
 import {
     Target, BookOpen, History, User, LogOut,
     Home, Wallet, Search, Bell, CircleHelp, TrendingUp, TrendingDown,
@@ -55,8 +55,6 @@ export default function Dashboard() {
         );
     }
 
-    // Mock data for new UI elements
-    const quote = "The best investment you can make is in yourself.";
     const activeLink = "Home"; // For static rendering
 
     return (
@@ -78,34 +76,24 @@ export default function Dashboard() {
 
                             {/* Top Row: Quote & Pills */}
                             <div className="flex flex-col md:flex-row gap-6">
-                                {/* Quote Card */}
-                                <div className="flex-1 bg-gradient-to-br from-[#1e1e26] to-[#18181c] rounded-3xl p-8 border border-white/5 flex items-center gap-5 relative overflow-hidden group">
-                                    <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                    <div className="w-14 h-14 rounded-full bg-[#FF7043] flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-orange-500/20 z-10 shrink-0">
-                                        {user?.first_name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'N'}
-                                    </div>
-                                    <div className="z-10">
-                                        <div className="flex items-center gap-2">
-                                            <h2 className="font-semibold text-lg text-white">{user?.first_name || user?.username || 'Nikhil Aswal'}</h2>
-                                            <span className="text-slate-400 text-sm font-medium">22 hr. ago</span>
-                                        </div>
-                                        <p className="text-slate-300 font-medium text-[15px] mt-0.5">Daily Quote: "{quote}"</p>
-                                    </div>
-                                </div>
+                                {/* Live Finance News Instead of Static Quote */}
+                                <FinanceNews />
 
                                 {/* Interactive Pills */}
                                 <div className="flex flex-col gap-3 min-w-[200px]">
                                     <div className="bg-[#18181c] rounded-2xl flex items-center justify-between p-4 px-6 border border-white/5 hover:border-white/10 transition-colors cursor-pointer">
                                         <span className="font-semibold text-white">Offers</span>
-                                        <span className="w-6 h-6 rounded-full bg-[#FFCA28] text-black flex items-center justify-center text-xs font-bold">4</span>
+                                        <span className="w-6 h-6 rounded-full bg-[#FFCA28] text-black flex items-center justify-center text-xs font-bold">0</span>
                                     </div>
                                     <div className="bg-[#18181c] rounded-2xl flex items-center justify-between p-4 px-6 border border-white/5 hover:border-white/10 transition-colors cursor-pointer">
                                         <span className="font-semibold text-white">Rewards</span>
-                                        <span className="w-6 h-6 rounded-full bg-[#29B6F6] text-white flex items-center justify-center text-xs font-bold">10</span>
+                                        <span className="w-6 h-6 rounded-full bg-[#29B6F6] text-white flex items-center justify-center text-xs font-bold">
+                                            {transactions.filter(tx => ['reward', 'REWARD'].includes(tx.transaction_type)).length}
+                                        </span>
                                     </div>
                                     <div className="bg-[#18181c] rounded-2xl flex items-center justify-between p-4 px-6 border border-white/5 hover:border-white/10 transition-colors cursor-pointer">
                                         <span className="font-semibold text-white">Cashbacks</span>
-                                        <span className="w-6 h-6 rounded-full bg-[#EF5350] text-white flex items-center justify-center text-xs font-bold">8</span>
+                                        <span className="w-6 h-6 rounded-full bg-[#EF5350] text-white flex items-center justify-center text-xs font-bold">0</span>
                                     </div>
                                 </div>
                             </div>
@@ -122,7 +110,12 @@ export default function Dashboard() {
                                                 <TrendingUp className="text-green-500 w-3 h-3" />
                                             </div>
                                             <div className="text-2xl font-bold text-white tracking-tight">
-                                                {wallet?.balance ? parseFloat(wallet.balance).toLocaleString() : '2,400,000'} BeFin Coins
+                                                {(() => {
+                                                    const income = transactions
+                                                        .filter(tx => ['reward', 'deposit', 'REWARD', 'DEPOSIT'].includes(tx.transaction_type))
+                                                        .reduce((sum, tx) => sum + parseFloat(tx.amount), 0);
+                                                    return income.toLocaleString();
+                                                })()} BeFin Coins
                                             </div>
                                         </div>
                                         <div className="bg-[#111115] rounded-2xl p-4 border border-white/5 flex flex-col gap-1">
@@ -131,7 +124,12 @@ export default function Dashboard() {
                                                 <TrendingDown className="text-red-500 w-3 h-3" />
                                             </div>
                                             <div className="text-2xl font-bold text-white tracking-tight">
-                                                36,000 BeFin Coins
+                                                {(() => {
+                                                    const expenses = transactions
+                                                        .filter(tx => !['reward', 'deposit', 'REWARD', 'DEPOSIT'].includes(tx.transaction_type))
+                                                        .reduce((sum, tx) => sum + parseFloat(tx.amount), 0);
+                                                    return expenses.toLocaleString();
+                                                })()} BeFin Coins
                                             </div>
                                         </div>
                                     </div>
@@ -181,12 +179,12 @@ export default function Dashboard() {
                                     <div className="bg-[#18181c] border border-white/5 rounded-3xl p-5 h-[calc(100%-2.5rem)]">
                                         <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                                             {[
-                                                { icon: Home, label: 'Housing', amount: '$250.00', pct: '15%*' },
-                                                { icon: Utensils, label: 'Food', amount: '$350.00', pct: '08%*' },
-                                                { icon: Car, label: 'Transportation', amount: '$50.00', pct: '12%*' },
-                                                { icon: Ticket, label: 'Entertainment', amount: '$80.00', pct: '15%*' },
-                                                { icon: ShoppingBag, label: 'Shopping', amount: '$420.00', pct: '25%*' },
-                                                { icon: Package, label: 'Others', amount: '$650.00', pct: '23%*' }
+                                                { icon: Home, label: 'Housing', amount: '0', pct: '00%*' },
+                                                { icon: Utensils, label: 'Food', amount: '0', pct: '00%*' },
+                                                { icon: Car, label: 'Transportation', amount: '0', pct: '00%*' },
+                                                { icon: Ticket, label: 'Entertainment', amount: '0', pct: '00%*' },
+                                                { icon: ShoppingBag, label: 'Shopping', amount: '0', pct: '00%*' },
+                                                { icon: Package, label: 'Others', amount: '0', pct: '00%*' }
                                             ].map((exp, idx) => {
                                                 const Icon = exp.icon;
                                                 return (
@@ -198,7 +196,7 @@ export default function Dashboard() {
                                                             <div>
                                                                 <p className="text-xs text-slate-400 font-semibold">{exp.label}</p>
                                                                 <div className="flex items-baseline gap-1.5">
-                                                                    <span className="text-[15px] font-bold text-white">{exp.amount}</span>
+                                                                    <span className="text-[15px] font-bold text-white">{exp.amount} BeFin Coins</span>
                                                                     <span className="text-[10px] text-green-500 font-bold">{exp.pct} ↑</span>
                                                                 </div>
                                                             </div>
@@ -228,13 +226,6 @@ export default function Dashboard() {
                                         ].map((tx, idx) => (
                                             <div key={idx} className="flex items-center justify-between p-4 rounded-2xl hover:bg-[#1c1c24] transition-colors group cursor-pointer border-b border-white/5 last:border-0 border-solid">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-11 h-11 rounded-xl bg-[#111115] border border-white/5 flex items-center justify-center transition-colors">
-                                                        {tx.isNegative ? (
-                                                            <ArrowUpRight className="w-5 h-5 text-slate-400" />
-                                                        ) : (
-                                                            <ArrowDownLeft className="w-5 h-5 text-blue-500" />
-                                                        )}
-                                                    </div>
                                                     <div>
                                                         <p className="font-semibold text-white text-[15px]">{tx.title}</p>
                                                         <p className="text-[11px] text-slate-500 font-medium mt-0.5 tracking-wide">{tx.date}</p>
@@ -248,25 +239,26 @@ export default function Dashboard() {
                                     </>
                                 ) : (
                                     <>
-                                        {transactions.map((tx: any) => {
-                                            const isDeposit = tx.transaction_type === 'DEPOSIT' || tx.transaction_type === 'REWARD';
+                                        {transactions.map((tx: any, idx: number) => {
+                                            const isDeposit = ['reward', 'deposit', 'REWARD', 'DEPOSIT'].includes(tx.transaction_type);
+                                            const isReward = ['reward', 'REWARD'].includes(tx.transaction_type);
                                             return (
-                                                <div key={tx.id} className="flex items-center justify-between p-4 rounded-2xl hover:bg-[#1c1c24] transition-colors group cursor-pointer border-b border-white/5 last:border-0 border-solid">
+                                                <div key={tx.id} className="flex items-center justify-between p-4 rounded-2xl hover:bg-white/[0.03] transition-all group cursor-pointer border-b border-white/5 last:border-0 border-solid relative">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-11 h-11 rounded-xl bg-[#111115] border border-white/5 flex items-center justify-center transition-colors">
-                                                            {!isDeposit ? (
-                                                                <ArrowUpRight className="w-5 h-5 text-slate-400" />
-                                                            ) : (
-                                                                <ArrowDownLeft className="w-5 h-5 text-blue-500" />
-                                                            )}
-                                                        </div>
                                                         <div>
-                                                            <p className="font-semibold text-white text-[15px]">{tx.description || tx.transaction_type}</p>
-                                                            <p className="text-[11px] text-slate-500 font-medium mt-0.5 tracking-wide">{new Date(tx.timestamp).toLocaleString()}</p>
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="font-bold text-white text-[15px] tracking-tight">{tx.description || tx.transaction_type}</p>
+                                                                {isReward && idx === 0 && (
+                                                                    <span className="text-[9px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-md font-black uppercase tracking-tighter animate-pulse">New</span>
+                                                                )}
+                                                            </div>
+                                                            <p className="text-[11px] text-slate-500 font-semibold mt-0.5 tracking-wider uppercase opacity-70">
+                                                                {new Date(tx.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} • {new Date(tx.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                                                            </p>
                                                         </div>
                                                     </div>
-                                                    <div className={`font-bold text-[14px] ${!isDeposit ? 'text-white' : 'text-[#0380f5]'}`}>
-                                                        {isDeposit ? '+' : '-'}{parseFloat(tx.amount).toLocaleString()} BeFin Coins
+                                                    <div className={`font-black text-[15px] tracking-tight ${isDeposit ? 'text-blue-400' : 'text-white/40'}`}>
+                                                        {isDeposit ? '+' : '-'}{parseFloat(tx.amount).toLocaleString()}
                                                     </div>
                                                 </div>
                                             );

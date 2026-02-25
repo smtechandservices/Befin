@@ -2,12 +2,69 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
 
-const api = axios.create({
+export const api = axios.create({
     baseURL: API_BASE_URL,
     headers: {
         'Content-Type': 'application/json',
     },
 });
+
+export const authService = {
+    register: async (userData: any) => {
+        const response = await api.post('/users/register/', userData);
+        return response.data;
+    },
+
+    login: async (credentials: any) => {
+        const response = await api.post('/users/login/', credentials);
+        if (response.data.access) {
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('access_token', response.data.access);
+                localStorage.setItem('refresh_token', response.data.refresh);
+            }
+        }
+        return response.data;
+    },
+
+    logout: () => {
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+        }
+    },
+
+    getProfile: async () => {
+        const response = await api.get('/users/profile/');
+        return response.data;
+    },
+};
+
+export const walletService = {
+    getBalance: async () => {
+        const response = await api.get('/wallet/balance/');
+        return response.data;
+    },
+
+    getTransactions: async () => {
+        const response = await api.get('/wallet/transactions/');
+        return response.data;
+    },
+
+    getDiscounts: async () => {
+        const response = await api.get('/wallet/discounts/');
+        return response.data;
+    },
+
+    transferMoney: async (identifier: string, amount: number) => {
+        const response = await api.post('/wallet/transfer/', { identifier, amount });
+        return response.data;
+    },
+
+    searchUsers: async (query: string) => {
+        const response = await api.get(`/wallet/search-users/?q=${query}`);
+        return response.data;
+    },
+};
 
 // Add a request interceptor to add the JWT token
 api.interceptors.request.use(
@@ -62,4 +119,3 @@ api.interceptors.response.use(
     }
 );
 
-export default api;

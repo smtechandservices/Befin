@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { authService } from '../../lib/auth';
+import { authService } from '../../lib/api';
 
 export default function Signup() {
   const router = useRouter();
@@ -84,7 +84,7 @@ export default function Signup() {
             </p>
             <h2 className="text-[3rem] text-gray-900 tracking-tight leading-none mt-1">Sign up</h2>
           </div>
-          
+
           <form className="mt-2 flex flex-col gap-2" onSubmit={handleSubmit}>
             {error && (
               <div className="bg-red-50 text-red-500 text-[13px] p-3 rounded-xl border border-red-100 font-medium">

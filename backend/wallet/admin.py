@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Wallet, Transaction
+from .models import Wallet, Transaction, Discount
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
@@ -11,3 +11,9 @@ class TransactionAdmin(admin.ModelAdmin):
     list_display = ['wallet', 'amount', 'transaction_type', 'timestamp']
     list_filter = ['transaction_type', 'timestamp']
     search_fields = ['wallet__user__username', 'description']
+
+@admin.register(Discount)
+class DiscountAdmin(admin.ModelAdmin):
+    list_display = ['brand_name', 'percentage', 'coin_cost', 'is_active']
+    list_filter = ['is_active', 'category']
+    search_fields = ['brand_name', 'code']
