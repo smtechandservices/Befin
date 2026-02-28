@@ -10,7 +10,6 @@ const NAV_ITEMS = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
     { icon: LineChart, label: 'Market', href: '/market' },
     { icon: Wallet, label: 'Portfolio', href: '/portfolio' },
-    { icon: History, label: 'History', href: '/history' },
 ];
 
 export default function Sidebar() {

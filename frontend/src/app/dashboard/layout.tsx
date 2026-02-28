@@ -10,7 +10,6 @@ const NAV_ITEMS = [
     { name: 'Wallet', href: '/dashboard/wallet', icon: Wallet },
     { name: 'Goal Setter', href: '/dashboard/goals', icon: Target },
     { name: 'Learning', href: '/dashboard/learning', icon: BookOpen },
-    { name: 'History', href: '/dashboard/history', icon: Clock },
     { name: 'Profile', href: '/dashboard/profile', icon: User },
 ];
 
