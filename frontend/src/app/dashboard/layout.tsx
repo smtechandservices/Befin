@@ -51,9 +51,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
 
                 <div className="p-6 flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-[#0A66C2] flex items-center justify-center">
-                        <span className="text-white text-xl font-black">B</span>
-                    </div>
+                    <img src="/images/logo.png" alt="Logo" className="w-10 h-10 object-contain" />
                     <span className="text-2xl font-bold tracking-wide text-white">BeFin</span>
                 </div>
 
@@ -96,9 +94,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex-1 flex flex-col min-w-0">
                 <header className="md:hidden flex items-center justify-between p-4 bg-surface border-b border-white/5 sticky top-0 z-20">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center shadow-[0_0_10px_rgba(0,212,170,0.5)]">
-                            <span className="text-background font-bold leading-none">B</span>
-                        </div>
+                        <img src="/images/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
                         <span className="font-bold">BeFin</span>
                     </div>
                     <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-text-secondary hover:text-white">

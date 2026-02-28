@@ -47,9 +47,7 @@ export default function LoginPage() {
             {/* Left Side: Branding and Illustration */}
             <div className="hidden lg:flex lg:flex-1 flex-col justify-center px-16 relative overflow-hidden">
                 <div className="absolute top-12 left-12 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#001D66] flex items-center justify-center shadow-lg">
-                        <span className="text-cyan-400 text-2xl font-black">B</span>
-                    </div>
+                    <img src="/images/logo.png" alt="Logo" className="w-10 h-10 object-contain drop-shadow-lg" />
                     <span className="text-3xl font-bold text-white tracking-wide">BeFin</span>
                 </div>
 
@@ -64,7 +62,7 @@ export default function LoginPage() {
 
                 <div className="relative w-full h-[500px]">
                     <Image
-                        src="/images/login-illustration.png"
+                        src="/images/login.png"
                         alt="Finance Hero Illustration"
                         fill
                         className="object-contain object-left-bottom drop-shadow-2xl transition-opacity duration-300"
