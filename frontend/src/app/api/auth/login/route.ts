@@ -16,9 +16,21 @@ export async function POST(request: Request) {
             body: JSON.stringify({ username, password })
         });
 
-        const data = await res.json();
+        // Safe JSON parsing
+        let data;
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            data = await res.json();
+        } else {
+            const text = await res.text();
+            console.error('Non-JSON response from backend:', text.slice(0, 500));
+            return NextResponse.json({
+                error: 'Backend returned an unexpected response format. Please check server logs.'
+            }, { status: 502 });
+        }
+
         if (!res.ok) {
-            return NextResponse.json({ error: data.detail || 'Invalid credentials' }, { status: 401 });
+            return NextResponse.json({ error: data.detail || 'Invalid credentials' }, { status: res.status });
         }
 
         // Store standard Django JWT access token in cookie
@@ -30,7 +42,11 @@ export async function POST(request: Request) {
         });
         const user = await profileRes.json();
 
-        return NextResponse.json({ user }, { status: 200 });
+        return NextResponse.json({
+            user,
+            access: data.access,
+            refresh: data.refresh
+        }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
     }

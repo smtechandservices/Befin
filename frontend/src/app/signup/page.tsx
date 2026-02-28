@@ -1,16 +1,35 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Gift, Check } from 'lucide-react';
 
 export default function SignupPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+    const [formData, setFormData] = useState({
+        username: '',
+        email: '',
+        password: '',
+        referral_code: '',
+        avatar_type: 'male' as 'male' | 'female'
+    });
+
+    useEffect(() => {
+        const ref = searchParams.get('ref');
+        if (ref) {
+            setFormData(prev => ({ ...prev, referral_code: ref }));
+            toast.success('Referral code applied!');
+        }
+    }, [searchParams]);
+
+    const selectAvatar = (type: 'male' | 'female') => {
+        setFormData(prev => ({ ...prev, avatar_type: type }));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -138,6 +157,53 @@ export default function SignupPage() {
                                 value={formData.password}
                                 onChange={e => setFormData({ ...formData, password: e.target.value })}
                             />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-800 mb-4 text-center">Select Your Avatar</label>
+                            <div className="flex justify-center gap-12">
+                                <div
+                                    onClick={() => selectAvatar('male')}
+                                    className={`relative cursor-pointer group transition-all ${formData.avatar_type === 'male' ? 'scale-110' : 'opacity-60 grayscale hover:grayscale-0 hover:opacity-100'}`}
+                                >
+                                    <div className={`w-24 h-24 rounded-full border-4 transition-all ${formData.avatar_type === 'male' ? 'border-[#0084ff] shadow-lg shadow-blue-500/20' : 'border-transparent'}`}>
+                                        <img src="/avatars/male.png" alt="Male" className="w-full h-full rounded-full object-cover" />
+                                    </div>
+                                    <p className={`text-center mt-2 text-xs font-bold ${formData.avatar_type === 'male' ? 'text-[#0084ff]' : 'text-gray-400'}`}>Male</p>
+                                    {formData.avatar_type === 'male' && (
+                                        <div className="absolute -top-2 -right-2 bg-[#0084ff] text-white rounded-full p-1 shadow-md">
+                                            <Check size={12} strokeWidth={4} />
+                                        </div>
+                                    )}
+                                </div>
+                                <div
+                                    onClick={() => selectAvatar('female')}
+                                    className={`relative cursor-pointer group transition-all ${formData.avatar_type === 'female' ? 'scale-110' : 'opacity-60 grayscale hover:grayscale-0 hover:opacity-100'}`}
+                                >
+                                    <div className={`w-24 h-24 rounded-full border-4 transition-all ${formData.avatar_type === 'female' ? 'border-pink-500 shadow-lg shadow-pink-500/20' : 'border-transparent'}`}>
+                                        <img src="/avatars/female.png" alt="Female" className="w-full h-full rounded-full object-cover" />
+                                    </div>
+                                    <p className={`text-center mt-2 text-xs font-bold ${formData.avatar_type === 'female' ? 'text-pink-500' : 'text-gray-400'}`}>Female</p>
+                                    {formData.avatar_type === 'female' && (
+                                        <div className="absolute -top-2 -right-2 bg-pink-500 text-white rounded-full p-1 shadow-md">
+                                            <Check size={12} strokeWidth={4} />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-800 mb-2">Referral Code (Optional)</label>
+                            <div className="relative">
+                                <Gift className="absolute right-4 top-1/2 -translate-y-1/2 text-pink-500/50" size={18} />
+                                <input
+                                    type="text"
+                                    className="w-full bg-white border border-[#BDE0FF] rounded-xl px-4 py-3.5 outline-none focus:border-[#0084ff] focus:ring-1 focus:ring-[#0084ff] transition-all text-gray-900 placeholder:text-gray-400"
+                                    placeholder="Enter referral code"
+                                    value={formData.referral_code}
+                                    onChange={e => setFormData({ ...formData, referral_code: e.target.value.toUpperCase() })}
+                                />
+                            </div>
                         </div>
 
                         <button

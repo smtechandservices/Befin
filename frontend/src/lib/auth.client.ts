@@ -1,14 +1,15 @@
+import api from './api';
+
 // Client-safe auth methods
 export const authService = {
     getProfile: async () => {
-        const res = await fetch('/api/user/profile');
-        if (!res.ok) throw new Error('Failed to fetch profile');
-        return res.json();
+        const res = await api.get('/users/profile/');
+        return res.data;
     },
     logout: async () => {
-        const res = await fetch('/api/auth/logout', { method: 'POST' });
-        if (!res.ok) throw new Error('Failed to logout');
         if (typeof window !== 'undefined') {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
             window.location.href = '/login';
         }
     }

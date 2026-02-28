@@ -1,3 +1,4 @@
+from decimal import Decimal
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -26,24 +27,31 @@ class TransactionListView(APIView):
         return Response(serializer.data)
 
 class AwardCoinsView(APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
+        # Prioritize request.user if authenticated, otherwise use body username
+        user = request.user
         username = request.data.get('username')
+        
+        if not username and not user.is_authenticated:
+            return Response({'error': 'Missing identification (username or token)'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if username and (not user.is_authenticated or user.username != username):
+            try:
+                user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                return Response({'error': f'User {username} not found'}, status=status.HTTP_404_NOT_FOUND)
+            
         coins = request.data.get('coins')
         source = request.data.get('source', 'game')
         game_score = request.data.get('game_score')
 
-        if not username or coins is None:
-            return Response({'error': 'Missing username or coins'}, status=status.HTTP_400_BAD_REQUEST)
+        if coins is None:
+            return Response({'error': 'Missing coins amount'}, status=status.HTTP_400_BAD_REQUEST)
         
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-            
         wallet, created = Wallet.objects.get_or_create(user=user)
-        wallet.balance += int(coins)
+        wallet.balance += Decimal(str(coins))
         wallet.save()
         
         Transaction.objects.create(
@@ -141,10 +149,10 @@ class TradeStockView(APIView):
             return Response({'error': 'Missing required fields'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            quantity = float(quantity)
-            price = float(price)
+            quantity = Decimal(str(quantity))
+            price = Decimal(str(price))
             total_cost = quantity * price
-        except ValueError:
+        except (ValueError, TypeError):
             return Response({'error': 'Invalid quantity or price'}, status=status.HTTP_400_BAD_REQUEST)
 
         wallet, created = Wallet.objects.get_or_create(user=request.user)
@@ -172,3 +180,85 @@ class TradeStockView(APIView):
         )
 
         return Response({'success': True, 'balance': wallet.balance})
+
+class TransferCoinsView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        target_username = request.data.get('username')
+        amount = request.data.get('amount')
+        password = request.data.get('password')
+
+        if not all([target_username, amount, password]):
+            return Response({'error': 'Missing required fields'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verify password
+        if not request.user.check_password(password):
+            return Response({'error': 'Incorrect password'}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            amount = Decimal(str(amount))
+            if amount <= 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            return Response({'error': 'Invalid amount'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if request.user.username == target_username:
+            return Response({'error': 'Cannot transfer to yourself'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            target_user = User.objects.get(username=target_username)
+        except User.DoesNotExist:
+            return Response({'error': 'Recipient user not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        source_wallet, _ = Wallet.objects.get_or_create(user=request.user)
+        if source_wallet.balance < amount:
+            return Response({'error': 'Insufficient balance'}, status=status.HTTP_400_BAD_REQUEST)
+
+        target_wallet, _ = Wallet.objects.get_or_create(user=target_user)
+
+        # Atomic transaction (simplified here)
+        source_wallet.balance -= amount
+        target_wallet.balance += amount
+        
+        source_wallet.save()
+        target_wallet.save()
+
+        Transaction.objects.create(
+            wallet=source_wallet,
+            amount=amount,
+            transaction_type='withdrawal',
+            description=f"Transfer to @{target_username}"
+        )
+
+        Transaction.objects.create(
+            wallet=target_wallet,
+            amount=amount,
+            transaction_type='deposit',
+            description=f"Received from @{request.user.username}"
+        )
+
+        return Response({'success': True, 'new_balance': source_wallet.balance})
+
+class CardDetailView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        password = request.data.get('password')
+        if not password:
+            return Response({'error': 'Password required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not request.user.check_password(password):
+            return Response({'error': 'Incorrect password'}, status=status.HTTP_403_FORBIDDEN)
+
+        wallet, _ = Wallet.objects.get_or_create(user=request.user)
+        try:
+            from .models import VirtualCard
+            card = VirtualCard.objects.get(wallet=wallet)
+            return Response({
+                'card_number': card.card_number,
+                'cvv': card.cvv,
+                'expiry_date': card.expiry_date
+            })
+        except Exception:
+            return Response({'error': 'Card details not found'}, status=status.HTTP_404_NOT_FOUND)

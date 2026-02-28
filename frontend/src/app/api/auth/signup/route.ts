@@ -4,7 +4,7 @@ import { setSessionCookie } from '@/lib/auth';
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { username, email, password } = body;
+        const { username, email, password, referral_code, avatar_type } = body;
 
         if (!username || !email || !password) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
         const res = await fetch('http://localhost:8000/api/users/register/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email, password })
+            body: JSON.stringify({ username, email, password, referral_code, avatar_type })
         });
 
         let data = await res.json();

@@ -2,20 +2,22 @@ import api from './api';
 
 export const walletService = {
     getBalance: async () => {
-        try {
-            const response = await api.get('/wallet/balance/');
-            return response.data;
-        } catch (e) {
-            return { balance: 2400000.00 }; // fallback
-        }
+        const response = await api.get('/wallet/balance/');
+        return response.data;
     },
 
     getTransactions: async () => {
-        try {
-            const response = await api.get('/wallet/transactions/');
-            return response.data;
-        } catch (e) {
-            return []; // fallback
-        }
+        const response = await api.get('/wallet/transactions/');
+        return response.data;
     },
+
+    transferCoins: async (username: string, amount: number, password: string) => {
+        const response = await api.post('/wallet/transfer/', { username, amount, password });
+        return response.data;
+    },
+
+    getCardDetails: async (password: string) => {
+        const response = await api.post('/wallet/card-details/', { password });
+        return response.data;
+    }
 };

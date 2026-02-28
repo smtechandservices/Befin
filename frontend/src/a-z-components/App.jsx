@@ -6,13 +6,13 @@ import { FINANCE_KEYWORDS } from './keywords';
 import './index.css';
 
 const ALL_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-const LEADERBOARD_KEY = "finance_hero_ultimate_leaderboard";
+const QUESTIONS_COUNT = 10;
 
 // Age preferences: Kid (30s, simple), Teen (20s, medium), Adult (15s, hard)
 const AGE_CONFIG = {
-  KID: { timer: 45, label: "Junior Explorer", desc: "For youngsters learning about money!" },
-  TEEN: { timer: 30, label: "Finance Trainee", desc: "For teens building wealth habits." },
-  ADULT: { timer: 15, label: "Wall Street Pro", desc: "The ultimate challenge for experts!" }
+  KID: { timer: 20, label: "Junior Explorer", desc: "For youngsters learning about money!" },
+  TEEN: { timer: 20, label: "Finance Trainee", desc: "For teens building wealth habits." },
+  ADULT: { timer: 20, label: "Wall Street Pro", desc: "The ultimate challenge for experts!" }
 };
 
 const SUCCESS_GIFS = [
@@ -38,9 +38,9 @@ function App() {
   const [timeLeft, setTimeLeft] = useState(30);
   const [feedback, setFeedback] = useState({ message: "", type: "", gif: "" });
   const [hint, setHint] = useState("");
-  const [lifelines, setLifelines] = useState({ community: true, friends: true });
+  const [hintUsed, setHintUsed] = useState(false);
+  const [lifelines, setLifelines] = useState({ hint: true });
   const [isLoading, setIsLoading] = useState(false);
-  const [leaderboard, setLeaderboard] = useState([]);
   const inputRef = useRef(null);
   const timerRef = useRef(null);
 
@@ -53,7 +53,7 @@ function App() {
       return null;
     };
 
-    const token = getCookie('befin_token');
+    const token = getCookie('befin_token') || localStorage.getItem('befin_token') || localStorage.getItem('access_token');
     if (!token) {
       window.location.href = 'http://localhost:3000/login';
       return;
@@ -75,9 +75,8 @@ function App() {
         window.location.href = 'http://localhost:3000/login';
       });
 
-    const saved = localStorage.getItem(LEADERBOARD_KEY);
-    if (saved) setLeaderboard(JSON.parse(saved));
-    setShuffledLetters([...ALL_LETTERS].sort(() => Math.random() - 0.5));
+    const shuffled = [...ALL_LETTERS].sort(() => Math.random() - 0.5);
+    setShuffledLetters(shuffled.slice(0, QUESTIONS_COUNT));
   }, []);
 
   // Timer logic
@@ -113,45 +112,52 @@ function App() {
       setInputValue("");
       setFeedback({ message: "", type: "", gif: "" });
       setHint("");
+      setHintUsed(false);
     } else {
       finishGame();
     }
   };
 
   const finishGame = async () => {
-    const newEntry = { name: username || "Anonymous", score, date: new Date().toLocaleDateString() };
-    const updated = [...leaderboard, newEntry].sort((a, b) => b.score - a.score).slice(0, 5);
-    setLeaderboard(updated);
-    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(updated));
     setGameState('WIN');
+    triggerCoins();
+    setIsLoading(true);
 
-    // BeFin Dashboard Sync
-    if (username) {
-      const getCookie = (name) => {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-        return null;
-      };
-      const token = getCookie('befin_token');
+    const getCookie = (name) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    };
 
-      try {
-        await fetch('http://localhost:8000/api/wallet/award/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            username,
-            coins: Math.floor(score / 10),
-            source: 'finance-hero-az',
-            game_score: score
-          })
-        });
-      } catch (err) {
-        console.error('Failed to sync BeCoins', err);
+    const token = getCookie('befin_token') || localStorage.getItem('befin_token') || localStorage.getItem('access_token');
+
+    // Attempt to sync BeCoins
+    try {
+      const response = await fetch('http://localhost:8000/api/wallet/award/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          username: username || undefined, // Backend will use token user if username is missing
+          coins: Math.floor(score / 10),
+          source: 'finance-hero-az',
+          game_score: score
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Wallet sync failed:', errorData);
+      } else {
+        console.log('Successfully synced BeCoins!');
       }
+    } catch (err) {
+      console.error('Network error during BeCoin sync:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -167,21 +173,23 @@ function App() {
   const getHint = async () => {
     if (hint || isLoading) return;
     setIsLoading(true);
-    // In a real scenario, we'd fetch a random word starting with currentLetter
-    // For now, we'll give them a partial clue or a synonym if they are stuck
-    setHint(`HINT: Think about things related to ${currentLetter}... 🏦`);
+
+    // Find keywords for current letter
+    const validKeywords = FINANCE_KEYWORDS.filter(k => k.term.toUpperCase().startsWith(currentLetter.toUpperCase()));
+    const randomKeyword = validKeywords.length > 0
+      ? validKeywords[Math.floor(Math.random() * validKeywords.length)]
+      : null;
+
+    if (randomKeyword) {
+      setHint(`HINT: ${randomKeyword.hint}`);
+      setHintUsed(true);
+    } else {
+      setHint(`HINT: Think of a financial term starting with ${currentLetter}... 🏦`);
+    }
+
     setIsLoading(false);
   };
 
-  const useLifeline = (type) => {
-    if (!lifelines[type]) return;
-    setLifelines(prev => ({ ...prev, [type]: false }));
-    if (type === 'community') {
-      setFeedback({ message: "COMMUNITY SAYS: Try 'Bank' or 'Bonds'! 👥", type: "success" });
-    } else {
-      setFeedback({ message: "FRIEND SAYS: 'I think it's Cash!' 📱", type: "success" });
-    }
-  };
 
   const checkIsFinanceTerm = async (word) => {
     try {
@@ -189,7 +197,7 @@ function App() {
       if (!response.ok) return false;
       const data = await response.json();
       const fullText = JSON.stringify(data).toLowerCase();
-      return FINANCE_KEYWORDS.some(keyword => fullText.includes(keyword.toLowerCase()));
+      return FINANCE_KEYWORDS.some(k => fullText.includes(k.term.toLowerCase()));
     } catch (error) {
       return false;
     }
@@ -219,9 +227,10 @@ function App() {
 
     if (isValid) {
       triggerCoins();
-      setScore(prev => prev + 100);
+      const points = hintUsed ? 50 : 100;
+      setScore(prev => prev + points);
       setFeedback({
-        message: "STUNNING! +100 Elite Points 💎",
+        message: `${hintUsed ? 'GOOD!' : 'STUNNING!'} +${points} Elite Points 💎`,
         type: "success",
         gif: SUCCESS_GIFS[Math.floor(Math.random() * SUCCESS_GIFS.length)]
       });
@@ -239,43 +248,36 @@ function App() {
     return (
       <div className="app-container">
         <div className="elite-card fade-in">
-          <h1>FINANCE HERO</h1>
-          <p className="subtitle">Ultimate Edition</p>
+          <h1 className="slide-up">A-Z Finance Elite</h1>
+          <p className="subtitle slide-up" style={{ animationDelay: '0.1s' }}>Master the language of wealth.</p>
 
-          <div className="age-selector">
-            {Object.keys(AGE_CONFIG).map(key => (
+          <div className="age-selector slide-up" style={{ animationDelay: '0.2s' }}>
+            {Object.keys(AGE_CONFIG).map((pref) => (
               <div
-                key={key}
-                className={`age-option ${agePref === key ? 'active' : ''}`}
-                onClick={() => setAgePref(key)}
+                key={pref}
+                className={`age-option ${agePref === pref ? 'active' : ''}`}
+                onClick={() => setAgePref(pref)}
               >
-                <div className="age-title">{AGE_CONFIG[key].label}</div>
-                <div className="age-desc">{AGE_CONFIG[key].desc}</div>
+                <div className="age-title">{AGE_CONFIG[pref].label}</div>
+                <div className="age-desc">{AGE_CONFIG[pref].desc}</div>
               </div>
             ))}
           </div>
 
-          <form onSubmit={startGame} className="input-group">
-            {username ? (
-              <div style={{ marginBottom: '15px', color: 'var(--gold)', fontWeight: 'bold' }}>
-                Welcome back, {username}!
+          <div className="input-group slide-up" style={{ animationDelay: '0.3s' }}>
+            <form onSubmit={startGame}>
+              <div style={{ marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: '600', textAlign: 'center' }}>
+                Welcome, <span style={{ color: 'var(--primary)' }}>{username || "Trader"}</span>
               </div>
-            ) : (
-              <div style={{ marginBottom: '15px', color: '#888' }}>
-                Authenticating...
-              </div>
-            )}
-            <button type="submit" className="elite-btn" disabled={!username}>Launch Portfolio</button>
-          </form>
-
-          <div className="leaderboard">
-            <div className="leaderboard-title">Hall of Fame</div>
-            {leaderboard.map((entry, i) => (
-              <div key={i} className="leader-item">
-                <span>{entry.name}</span>
-                <span style={{ color: 'var(--gold)' }}>{entry.score} pts</span>
-              </div>
-            ))}
+              <button type="submit" className="elite-btn">Start Portfolio Ignition</button>
+            </form>
+            <button
+              className="elite-btn secondary"
+              style={{ marginTop: '1rem' }}
+              onClick={() => window.location.href = 'http://localhost:3000/dashboard'}
+            >
+              Back to Dashboard
+            </button>
           </div>
         </div>
       </div>
@@ -288,13 +290,22 @@ function App() {
         <div className="elite-card fade-in" style={{ textAlign: 'center' }}>
           <h1>PORTFOLIO COMPLETE</h1>
           <p className="subtitle">Total Value Generated: {score}</p>
-          <div className="game-stats">
-            <div className="stat-item">
-              <div className="stat-label">Age Class</div>
-              <div className="stat-value">{AGE_CONFIG[agePref].label}</div>
-            </div>
+          <div className="stat-item" style={{ marginTop: '1.5rem', opacity: isLoading ? 0.6 : 1 }}>
+            {isLoading ? (
+              <div className="sync-status">Syncing BeCoins to Wallet... 🔄</div>
+            ) : (
+              <div className="sync-status" style={{ color: 'var(--success)' }}>BeCoins Synced Successfully! ✅</div>
+            )}
           </div>
-          <button className="elite-btn" onClick={() => window.location.reload()}>New Session</button>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '2.5rem' }}>
+            <button className="elite-btn" onClick={() => window.location.reload()}>New Session</button>
+            <button
+              className="elite-btn secondary"
+              onClick={() => window.location.href = 'http://localhost:3000/dashboard'}
+            >
+              Exit to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -304,40 +315,41 @@ function App() {
 
   return (
     <div className="app-container">
-      <div className="elite-card fade-in">
-        <div className="user-hud">
+      <div className="elite-card">
+        <button
+          className="back-edge-btn"
+          onClick={() => window.location.href = 'http://localhost:3000/dashboard'}
+          title="Return to Dashboard"
+        >
+          ✕
+        </button>
+        <div className="user-hud slide-up">
           <div className="profile">
             <div className="avatar">{username[0]?.toUpperCase()}</div>
             <div>
               <div className="username">{username}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--gold)' }}>RANK: {AGE_CONFIG[agePref].label}</div>
+              <div className="rank-badge">{AGE_CONFIG[agePref].label}</div>
             </div>
           </div>
           <div className="timer-ring-container">
-            <div className="timer-text" style={{ color: timeLeft < 5 ? 'var(--error)' : 'var(--secondary)' }}>
+            <div className="timer-text" style={{ color: timeLeft < 5 ? 'var(--error)' : '#fff' }}>
               {timeLeft}s
             </div>
           </div>
           <div className="coin-balance">
-            {score} PTS
+            {score} <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>PTS</span>
           </div>
         </div>
 
-        <div className="progress-track">
-          <div className="progress-bar-elite" style={{ width: `${(currentLetterIndex / 26) * 100}%` }}></div>
+        <div className="progress-track slide-up" style={{ animationDelay: '0.1s' }}>
+          <div className="progress-bar-elite" style={{ width: `${(currentLetterIndex / QUESTIONS_COUNT) * 100}%` }}></div>
         </div>
 
-        <div className="letter-ring">{currentLetter}</div>
+        <div className="letter-ring slide-up" style={{ animationDelay: '0.2s' }}>{currentLetter}</div>
 
-        <div className="lifeline-panel">
+        <div className="lifeline-panel slide-up" style={{ animationDelay: '0.3s' }}>
           <button className="lifeline-btn" onClick={getHint} disabled={hint || isLoading}>
             💡 Get Hint
-          </button>
-          <button className="lifeline-btn" onClick={() => useLifeline('community')} disabled={!lifelines.community}>
-            👥 Ask Community
-          </button>
-          <button className="lifeline-btn" onClick={() => useLifeline('friends')} disabled={!lifelines.friends}>
-            📱 Call Friend
           </button>
         </div>
 

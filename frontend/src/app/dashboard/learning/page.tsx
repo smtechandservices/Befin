@@ -28,25 +28,22 @@ export default function LearningPage() {
                     </a>
                 </div>
 
-                {/* Game 2: Paper Trading Simulator */}
-                <div className="bg-[#1C1F26] rounded-[24px] overflow-hidden flex flex-col items-center p-6 text-center hover:bg-[#20242D] transition-colors group">
-                    <div className="w-full bg-[#E3F2FD] rounded-[20px] p-8 mb-6 relative overflow-hidden h-48 flex items-center justify-center transition-transform group-hover:scale-[1.02]">
-                        <div className="absolute top-4 left-4 right-4 bottom-4 border-2 border-dashed border-[#2196F3]/30 rounded-[12px]"></div>
-                        <TrendingUp className="w-20 h-20 text-[#2196F3] drop-shadow-md z-10" />
-                        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#2196F3]/10 rounded-full blur-2xl"></div>
+                {/* Game 2: Paper Trading Simulator (Coming Soon) */}
+                <div className="bg-[#1C1F26] rounded-[24px] overflow-hidden flex flex-col items-center p-6 text-center border-2 border-dashed border-[#333333] opacity-60">
+                    <div className="w-full bg-[#2A2D35] rounded-[20px] p-8 mb-6 relative overflow-hidden h-48 flex items-center justify-center">
+                        <TrendingUp className="w-16 h-16 text-[#555555] z-10" />
                     </div>
 
-                    <h2 className="text-xl font-bold mb-2">Virtual Trading</h2>
-                    <p className="text-[#888888] text-sm mb-6 max-w-[250px]">
+                    <h2 className="text-xl font-bold mb-2 text-[#888888]">Virtual Trading</h2>
+                    <p className="text-[#666666] text-sm mb-6 max-w-[250px]">
                         Experience the stock market risk-free.
                     </p>
-                    {/* Route directly to internal Trade App Next.js layout */}
-                    <a
-                        href="/trade"
-                        className="w-full py-3 bg-[#2196F3] hover:bg-[#1E88E5] text-white rounded-xl font-bold flex justify-center items-center gap-2 transition-colors shadow-lg shadow-[#2196F3]/20"
+                    <button
+                        disabled
+                        className="w-full py-3 bg-[#2A2D35] text-[#888888] rounded-xl font-bold cursor-not-allowed"
                     >
-                        Play Now <PlayCircle className="w-5 h-5 fill-white/20" />
-                    </a>
+                        Coming Soon
+                    </button>
                 </div>
 
                 {/* Coming Soon Placeholder */}
