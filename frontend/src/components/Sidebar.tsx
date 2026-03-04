@@ -20,19 +20,20 @@ export default function Sidebar() {
         { name: 'Home', icon: Home, href: '/dashboard' },
         { name: 'Wallet', icon: Wallet, href: '/wallet' },
         { name: 'Goals', icon: Target, href: '/goals' },
-        { name: 'Learning', icon: BookOpen, href: '#' },
+        { name: 'Learning', icon: BookOpen, href: '/learning' },
         { name: 'Profile', icon: User, href: '/profile' },
     ];
 
     return (
         <aside className="w-[240px] bg-[#14141d] flex flex-col justify-between hidden md:flex shrink-0 border-r border-white/5">
             <div>
-                <div className="flex items-center gap-3 px-8 py-8">
-                    <Image src="/images/logo.png" alt="BeFin Logo" width={32} height={32} className="object-contain" />
-                    <span className="text-2xl font-bold tracking-tight text-white">BeFin</span>
+                <div className="flex items-center gap-3 px-6 pt-10 pb-4">
+                    <Image src="/images/logo.png" alt="BeFin Logo" width={46} height={46} className="object-contain" />
+                    <span className="text-3xl tracking-tight text-white">BeFin</span>
                 </div>
 
                 <nav className="flex flex-col gap-2 px-4 mt-4">
+                    <hr className='text-white/15' />
                     {links.map((link) => {
                         const Icon = link.icon;
                         const isActive = pathname === link.href;
@@ -47,6 +48,7 @@ export default function Sidebar() {
             </div>
 
             <div className="p-4 mb-4">
+                <hr className='text-white/15' />
                 <button onClick={handleLogout} className="flex items-center gap-4 w-full px-4 py-3.5 rounded-2xl font-medium text-red-400 hover:bg-red-400/10 transition-all">
                     <LogOut className="w-5 h-5" />
                     Logout

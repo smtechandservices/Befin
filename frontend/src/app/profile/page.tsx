@@ -4,9 +4,10 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import { authService, walletService } from '@/lib/api';
+import LoadingScreen from '@/components/LoadingScreen';
 import {
     User, Mail, Phone, Calendar, Edit3, Check, X,
-    ShieldCheck, Coins, ArrowDownLeft, ArrowUpRight, Copy
+    ShieldCheck, Coins, ArrowDownLeft, ArrowUpRight, Copy, Eye, EyeOff
 } from 'lucide-react';
 
 export default function ProfilePage() {
@@ -15,6 +16,7 @@ export default function ProfilePage() {
     const [wallet, setWallet] = useState<any>(null);
     const [transactions, setTransactions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showReferral, setShowReferral] = useState(false);
 
     // Edit mode
     const [editing, setEditing] = useState(false);
@@ -34,20 +36,21 @@ export default function ProfilePage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [userData, walletData, txData] = await Promise.all([
+                const [profileData, walletData, txData] = await Promise.all([
                     authService.getProfile(),
                     walletService.getBalance(),
                     walletService.getTransactions(),
+                    new Promise(resolve => setTimeout(resolve, 500))
                 ]);
-                setUser(userData);
+                setUser(profileData);
                 setWallet(walletData);
                 setTransactions(Array.isArray(txData) ? txData : []);
                 setForm({
-                    first_name: userData.first_name || '',
-                    last_name: userData.last_name || '',
-                    email: userData.email || '',
-                    phone_number: userData.phone_number || '',
-                    dob: userData.dob || '',
+                    first_name: profileData.first_name || '',
+                    last_name: profileData.last_name || '',
+                    email: profileData.email || '',
+                    phone_number: profileData.phone_number || '',
+                    dob: profileData.dob || '',
                 });
             } catch {
                 router.push('/login');
@@ -95,11 +98,7 @@ export default function ProfilePage() {
     };
 
     if (loading) {
-        return (
-            <div className="flex h-screen bg-[#0a0a0b] items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-        );
+        return <LoadingScreen />;
     }
 
     const totalIncome = transactions
@@ -164,14 +163,23 @@ export default function ProfilePage() {
                                     Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : '—'}
                                 </p>
                             </div>
-                            
+
                             {/* Referral Code */}
                             {user?.referral_code && (
                                 <div className="bg-[#111111] rounded-[2rem] p-7 border border-white/5 flex flex-col gap-3">
                                     <h3 className="text-slate-400 font-bold text-xs uppercase tracking-widest">Referral Code</h3>
                                     <div className="flex items-center gap-3">
-                                        <div className="flex-1 bg-[#181818] border border-white/10 rounded-lg px-4 py-3 text-center">
-                                            <span className="text-lg font-black text-white tracking-[0.12em] font-mono">{user.referral_code}</span>
+                                        <div className="flex-1 bg-[#181818] border border-white/10 rounded-lg px-4 py-3 text-center flex items-center justify-center gap-3">
+                                            <span className="text-lg font-black text-white tracking-[0.12em] font-mono">
+                                                {showReferral ? user.referral_code : '••••••••'}
+                                            </span>
+                                            <button
+                                                onClick={() => setShowReferral(!showReferral)}
+                                                className="text-slate-500 hover:text-white transition-colors p-1"
+                                                title={showReferral ? "Hide code" : "Show code"}
+                                            >
+                                                {showReferral ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                            </button>
                                         </div>
                                         <button
                                             onClick={copyReferral}

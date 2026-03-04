@@ -1,10 +1,24 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import { Target, Sparkles } from 'lucide-react';
+import LoadingScreen from '../../components/LoadingScreen';
 
 export default function GoalSetterPage() {
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (loading) {
+        return <LoadingScreen />;
+    }
+
     return (
         <div className="flex h-screen bg-[#0a0a0b] font-sans text-white overflow-hidden">
             {/* Left Sidebar */}

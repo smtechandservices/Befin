@@ -13,6 +13,7 @@ import {
     Eye, EyeOff, Smartphone, Landmark, ShieldCheck, ChevronRight,
     QrCode, Settings, Clock, MoreVertical, X
 } from 'lucide-react';
+import LoadingScreen from '@/components/LoadingScreen';
 
 export default function WalletPage() {
     const [user, setUser] = useState<any>(null);
@@ -106,27 +107,28 @@ export default function WalletPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [userData, walletData, transactionsData, discountsData] = await Promise.all([
+                const [profileData, walletData, txData, discountsData] = await Promise.all([
                     authService.getProfile(),
                     walletService.getBalance(),
                     walletService.getTransactions(),
-                    walletService.getDiscounts()
+                    walletService.getDiscounts(),
+                    new Promise(resolve => setTimeout(resolve, 500))
                 ]);
 
-                console.log("User Data:", userData);
+                console.log("User Data:", profileData);
                 console.log("Wallet Data:", walletData);
-                console.log("Transactions Data:", transactionsData);
+                console.log("Transactions Data:", txData);
                 console.log("Discounts Data:", discountsData);
 
-                setUser(userData);
+                setUser(profileData);
                 if (walletData) {
                     console.log("Setting Wallet Status:", !!walletData);
                     setWallet(walletData);
                 }
 
-                if (Array.isArray(transactionsData)) {
-                    console.log("Setting Transactions Count:", transactionsData.length);
-                    setTransactions(transactionsData);
+                if (Array.isArray(txData)) {
+                    console.log("Setting Transactions Count:", txData.length);
+                    setTransactions(txData);
                 } else if (walletData && Array.isArray(walletData.transactions)) {
                     console.log("Setting Transactions from Wallet Data:", walletData.transactions.length);
                     setTransactions(walletData.transactions);
@@ -144,11 +146,7 @@ export default function WalletPage() {
     }, []);
 
     if (loading) {
-        return (
-            <div className="flex h-screen bg-[#0a0a0b] items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-        );
+        return <LoadingScreen />;
     }
 
     const balanceValue = wallet?.balance !== undefined ? parseFloat(wallet.balance) : null;
@@ -186,11 +184,11 @@ export default function WalletPage() {
                                 {/* Money Transfers */}
                                 <div className="bg-[#111111] rounded-[2.5rem] p-7 border border-white/5 flex flex-col gap-6">
                                     <h3 className="text-slate-300 font-bold text-sm uppercase tracking-widest">Money Transfers</h3>
-                                    <div className="grid grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-1 gap-3">
                                         <button onClick={() => {
                                             setShowTransferModal(true);
                                             setShowConfirmation(false);
-                                        }} className="group flex flex-col items-center gap-3 p-4 rounded-2xl bg-[#181818] border border-white/5 hover:bg-blue-600/10 hover:border-blue-500/30 transition-all">
+                                        }} className="cursor-pointer group flex flex-col items-center gap-3 p-4 rounded-2xl bg-[#181818] border border-white/5 hover:bg-blue-600/10 hover:border-blue-500/30 transition-all">
                                             <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-all text-blue-500">
                                                 <Send className="w-6 h-6" />
                                             </div>
@@ -203,43 +201,58 @@ export default function WalletPage() {
                                 <div className="flex flex-col gap-4">
                                     <h3 className="text-slate-300 font-bold text-base tracking-tight pl-2">Payment Settings</h3>
                                     <div className="flex flex-col gap-3">
-                                        <div className="flex items-center justify-between p-4 bg-[#111] rounded-2xl border border-white/5 hover:bg-[#16161c] transition-colors group cursor-pointer">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
-                                                    <Smartphone className="w-5 h-5" />
+                                        <div className="relative group overflow-hidden rounded-2xl border border-white/5">
+                                            <div className="flex items-center justify-between p-4 bg-[#111] transition-colors group-hover:bg-[#16161c] cursor-pointer">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
+                                                        <Smartphone className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-white">UPI IDs</p>
+                                                        <p className="text-[10px] text-slate-500 font-medium tracking-tight">View all your UPI IDs</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-white">UPI IDs</p>
-                                                    <p className="text-[10px] text-slate-500 font-medium tracking-tight">View all your UPI IDs</p>
-                                                </div>
+                                                <MoreVertical className="w-4 h-4 text-slate-500" />
                                             </div>
-                                            <MoreVertical className="w-4 h-4 text-slate-500" />
+                                            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full shadow-lg shadow-blue-500/10">Coming Soon</span>
+                                            </div>
                                         </div>
 
-                                        <div className="flex items-center justify-between p-4 bg-[#111] rounded-2xl border border-white/5 hover:bg-[#16161c] transition-colors group cursor-pointer">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
-                                                    <QrCode className="w-5 h-5" />
+                                        <div className="relative group overflow-hidden rounded-2xl border border-white/5">
+                                            <div className="flex items-center justify-between p-4 bg-[#111] transition-colors group-hover:bg-[#16161c] cursor-pointer">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
+                                                        <QrCode className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-white">QR Codes</p>
+                                                        <p className="text-[10px] text-slate-500 font-medium tracking-tight">View your QR Code</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-white">QR Codes</p>
-                                                    <p className="text-[10px] text-slate-500 font-medium tracking-tight">View your QR Code</p>
-                                                </div>
+                                                <MoreVertical className="w-4 h-4 text-slate-500" />
                                             </div>
-                                            <MoreVertical className="w-4 h-4 text-slate-500" />
+                                            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full shadow-lg shadow-blue-500/10">Coming Soon</span>
+                                            </div>
                                         </div>
 
-                                        <div className="flex items-center justify-between p-4 bg-[#111] rounded-2xl border border-white/5 hover:bg-[#16161c] transition-colors group cursor-pointer">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
-                                                    <Settings className="w-5 h-5" />
+                                        <div className="relative group overflow-hidden rounded-2xl border border-white/5">
+                                            <div className="flex items-center justify-between p-4 bg-[#111] transition-colors group-hover:bg-[#16161c] cursor-pointer">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
+                                                        <Settings className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-white">Autopay Settings</p>
+                                                        <p className="text-[10px] text-slate-500 font-medium tracking-tight">Manage Autopay</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-white">Autopay Settings</p>
-                                                    <p className="text-[10px] text-slate-500 font-medium tracking-tight">Manage Autopay</p>
-                                                </div>
+                                                <MoreVertical className="w-4 h-4 text-slate-500" />
                                             </div>
-                                            <MoreVertical className="w-4 h-4 text-slate-500" />
+                                            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full shadow-lg shadow-blue-500/10">Coming Soon</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

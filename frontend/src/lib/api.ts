@@ -82,6 +82,13 @@ export const walletService = {
     },
 };
 
+export const gamesService = {
+    getGames: async () => {
+        const response = await api.get('/games/');
+        return response.data;
+    },
+};
+
 // Add a request interceptor to add the JWT token
 api.interceptors.request.use(
     (config) => {

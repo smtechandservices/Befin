@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { authService, walletService } from '../../lib/api';
 import Sidebar from '../../components/Sidebar';
 import FinanceNews from '../../components/FinanceNews';
+import LoadingScreen from '../../components/LoadingScreen';
 import {
     Target, BookOpen, History, User, LogOut,
     Home, Wallet, Search, Bell, CircleHelp, TrendingUp, TrendingDown,
     Smartphone, Landmark, CreditCard,
-    Utensils, Car, Ticket, ShoppingBag, Package,
     Send, Plus, LineChart, Coins,
-    ArrowUpRight, ArrowDownLeft
+    ArrowUpRight, ArrowDownLeft, ChevronRight, Eye, EyeOff
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -21,27 +21,44 @@ export default function Dashboard() {
     const [user, setUser] = useState<any>(null);
     const [wallet, setWallet] = useState<any>(null);
     const [transactions, setTransactions] = useState<any[]>([]);
+    const [discounts, setDiscounts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Referral States
     const [referralCode, setReferralCode] = useState<string | null>(null);
     const [generatingCode, setGeneratingCode] = useState(false);
+    const [showReferral, setShowReferral] = useState(false);
+
+    const QUOTES = [
+        { text: "Do not save what is left after spending; instead spend what is left after saving.", author: "Warren Buffett" },
+        { text: "An investment in knowledge pays the best interest.", author: "Benjamin Franklin" },
+        { text: "The stock market is a device for transferring money from the impatient to the patient.", author: "Warren Buffett" },
+        { text: "It's not how much money you make, but how much you keep.", author: "Robert Kiyosaki" },
+        { text: "Financial freedom is available to those who learn about it and work for it.", author: "Robert Kiyosaki" },
+        { text: "The goal isn't more money. The goal is living life on your terms.", author: "Chris Brogan" },
+        { text: "A budget is telling your money where to go instead of wondering where it went.", author: "Dave Ramsey" },
+        { text: "Beware of little expenses; a small leak will sink a great ship.", author: "Benjamin Franklin" },
+    ];
+    const quote = useMemo(() => QUOTES[Math.floor(Math.random() * QUOTES.length)], []);
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [profileData, walletData, txData, referralData] = await Promise.all([
+                const [profileData, walletData, txData, referralData, discountsData] = await Promise.all([
                     authService.getProfile(),
                     walletService.getBalance(),
                     walletService.getTransactions(),
-                    authService.getReferralCode()
+                    authService.getReferralCode(),
+                    walletService.getDiscounts(),
+                    new Promise(resolve => setTimeout(resolve, 500))
                 ]);
 
                 setUser(profileData);
                 setWallet(walletData);
                 setTransactions(txData);
                 setReferralCode(referralData.code);
+                setDiscounts(discountsData);
             } catch (error) {
                 console.error('Failed to fetch dashboard data:', error);
                 router.push('/login');
@@ -74,11 +91,7 @@ export default function Dashboard() {
     };
 
     if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[#0a0a0b] text-white">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0380f5]"></div>
-            </div>
-        );
+        return <LoadingScreen />;
     }
 
     const activeLink = "Home"; // For static rendering
@@ -102,7 +115,7 @@ export default function Dashboard() {
 
                 {/* Scrollable Grid Container */}
                 <div className="flex-1 overflow-y-auto px-10 pb-10 no-scrollbar">
-                    <div className="flex flex-col lg:flex-row gap-8 mb-6">
+                    <div className="flex flex-col lg:flex-row gap-8 mb-8">
 
                         {/* 70% Left Content Grid */}
                         <div className="flex-[2.5] flex flex-col gap-6">
@@ -114,10 +127,10 @@ export default function Dashboard() {
 
                                 {/* Interactive Pills */}
                                 <div className="flex flex-col gap-3 min-w-[200px]">
-                                    <div className="bg-[#18181c] rounded-xl flex items-center justify-between p-4 px-4 border border-white/5 hover:border-white/10 transition-colors">
+                                    <Link href="/wallet" className="bg-[#18181c] rounded-xl flex items-center justify-between p-4 px-4 border border-white/5 hover:border-white/10 transition-colors">
                                         <span className="font-semibold text-white">Offers</span>
-                                        <span className="w-6 h-6 rounded-full bg-[#FFCA28] text-black flex items-center justify-center text-xs font-bold">0</span>
-                                    </div>
+                                        <span className="w-6 h-6 rounded-full bg-[#FFCA28] text-black flex items-center justify-center text-xs font-bold">{discounts.length}</span>
+                                    </Link>
                                     <div className="bg-[#18181c] rounded-xl flex items-center justify-between p-4 px-4 border border-white/5 hover:border-white/10 transition-colors">
                                         <span className="font-semibold text-white">Rewards</span>
                                         <span className="w-6 h-6 rounded-full bg-[#29B6F6] text-white flex items-center justify-center text-xs font-bold">
@@ -195,8 +208,17 @@ export default function Dashboard() {
                                         ) : (
                                             <div className="mt-1 flex flex-col gap-2">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="bg-[#111115] border border-white/10 rounded-xl px-4 py-2 flex items-center justify-center min-w-[100px]">
-                                                        <span className="text-lg font-black text-white tracking-[0.1em]">{referralCode}</span>
+                                                    <div className="bg-[#111115] border border-white/10 rounded-xl px-4 py-2 flex items-center justify-center min-w-[120px] gap-3">
+                                                        <span className="text-lg font-black text-white tracking-[0.1em] font-mono">
+                                                            {showReferral ? referralCode : '••••••••'}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => setShowReferral(!showReferral)}
+                                                            className="text-slate-500 hover:text-white transition-colors p-1"
+                                                            title={showReferral ? "Hide code" : "Show code"}
+                                                        >
+                                                            {showReferral ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                        </button>
                                                     </div>
                                                     <button
                                                         onClick={copyToClipboard}
@@ -277,58 +299,80 @@ export default function Dashboard() {
 
                     {/* Row: Transfers & Expenses */}
                     <div className="flex flex-col xl:flex-row gap-6">
-                        {/* Money Transfers */}
+
+                        {/* Learning Games */}
                         <div className="flex-1 min-w-[300px]">
-                            <h3 className="text-xl font-bold text-white mb-4 px-1">Money Transfers</h3>
-                            <div className="grid grid-cols-3 gap-4 h-[calc(100%-2.5rem)]">
-                                <button className="bg-[#18181c] border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:bg-[#1c1c24] transition-colors group">
-                                    <Smartphone className="w-8 h-8 text-[#0380f5] group-hover:scale-110 transition-transform" />
-                                    <span className="text-[11px] font-medium text-slate-400 text-center">To<br />Mobile Number</span>
-                                </button>
-                                <button className="bg-[#18181c] border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:bg-[#1c1c24] transition-colors group">
-                                    <Landmark className="w-8 h-8 text-red-400 group-hover:scale-110 transition-transform" />
-                                    <span className="text-[11px] font-medium text-slate-400 text-center">To<br />Bank or UPI</span>
-                                </button>
-                                <button className="bg-[#18181c] border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:bg-[#1c1c24] transition-colors group">
-                                    <CreditCard className="w-8 h-8 text-orange-400 group-hover:scale-110 transition-transform" />
-                                    <span className="text-[11px] font-medium text-slate-400 text-center">To<br />Self Account</span>
-                                </button>
+                            {/* Motivational Quote */}
+                            <div className="bg-[#18181c] border border-white/5 rounded-xl px-6 py-4 mb-4 h-[150px] overflow-hidden flex items-center">
+                                <div className="flex flex-col gap-2">
+                                    <p className="text-sm font-semibold text-slate-300 leading-relaxed italic line-clamp-2"> " {quote.text} "</p>
+                                    <p className="text-[11px] font-black text-blue-400 uppercase tracking-widest">— {quote.author}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between mb-4 px-2">
+                                <h3 className="text-xl font-bold text-white">Learning Games</h3>
+                                <Link href="/learning" className="flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors">
+                                    View All <ChevronRight className="w-3 h-3" />
+                                </Link>
+                            </div>
+                            <div className="flex flex-col gap-3 h-[calc(100%-2.5rem)]">
+                                {[
+                                    { icon: TrendingUp, label: 'Stock Market Simulator', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+                                    { icon: Coins, label: 'A-Z of Money', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+                                    { icon: LineChart, label: 'Finance Wordle', color: 'text-green-400', bg: 'bg-green-500/10' },
+                                ].map(({ icon: Icon, label, color, bg }) => (
+                                    <div key={label} className="flex items-center gap-4 p-4 bg-[#18181c] rounded-xl border border-white/5 hover:border-white/10 hover:bg-[#1c1c24] transition-all cursor-not-allowed">
+                                        <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center shrink-0`}>
+                                            <Icon className={`w-5 h-5 ${color}`} />
+                                        </div>
+                                        <span className="text-sm font-bold text-slate-300 flex-1">{label}</span>
+                                        <span className="text-[9px] font-black uppercase tracking-wider text-slate-600 bg-white/5 px-2 py-1 rounded-lg">Soon</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
-                        {/* Expenses Breakdown */}
+
+                        {/* Goal Tracker */}
                         <div className="flex-[1.5]">
-                            <h3 className="text-xl font-bold text-white mb-4 px-1">Expenses Breakdown</h3>
-                            <div className="bg-[#18181c] border border-white/5 rounded-3xl p-5 h-[calc(100%-2.5rem)]">
-                                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                                    {[
-                                        { icon: Home, label: 'Housing', amount: '0', pct: '00%*' },
-                                        { icon: Utensils, label: 'Food', amount: '0', pct: '00%*' },
-                                        { icon: Car, label: 'Transportation', amount: '0', pct: '00%*' },
-                                        { icon: Ticket, label: 'Entertainment', amount: '0', pct: '00%*' },
-                                        { icon: ShoppingBag, label: 'Shopping', amount: '0', pct: '00%*' },
-                                        { icon: Package, label: 'Others', amount: '0', pct: '00%*' }
-                                    ].map((exp, idx) => {
-                                        const Icon = exp.icon;
-                                        return (
-                                            <div key={idx} className="flex items-center justify-between p-3 rounded-2xl hover:bg-[#1c1c24] transition-colors border border-transparent hover:border-white/5">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-xl bg-[#111115] flex items-center justify-center opacity-80 border border-white/5">
-                                                        <Icon className="w-4 h-4 text-slate-400" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-xs text-slate-400 font-semibold">{exp.label}</p>
-                                                        <div className="flex items-baseline gap-1.5">
-                                                            <span className="text-[15px] font-bold text-white">{exp.amount} BeFin Coins</span>
-                                                            <span className="text-[10px] text-green-500 font-bold">{exp.pct} ↑</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="text-slate-500 text-xs">→</div>
-                                            </div>
-                                        );
-                                    })}
+                            <div className="flex items-center justify-between mb-4 px-1">
+                                <h3 className="text-xl font-bold text-white">Goal Tracker</h3>
+                                <Link href="/goals" className="flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors">
+                                    Go to Goals <ChevronRight className="w-3 h-3" />
+                                </Link>
+                            </div>
+                            <div className="bg-[#18181c] border border-white/5 rounded-3xl p-5 h-[calc(100%-2.5rem)] flex flex-col gap-4">
+                                {/* Coming soon badge */}
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-full">Full tracking coming soon</span>
                                 </div>
+
+                                {[
+                                    { label: 'Emergency Fund', target: 10000, current: 4200, color: 'bg-blue-500' },
+                                    { label: 'New Laptop', target: 5000, current: 3750, color: 'bg-purple-500' },
+                                    { label: 'Vacation Trip', target: 8000, current: 1100, color: 'bg-green-500' },
+                                ].map((goal) => {
+                                    const pct = Math.min(100, Math.round((goal.current / goal.target) * 100));
+                                    return (
+                                        <div key={goal.label} className="flex flex-col gap-2 p-3 hover:bg-[#1c1c24] transition-colors">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-sm font-bold text-white">{goal.label}</p>
+                                                <p className="text-xs font-black text-slate-400">{pct}%</p>
+                                            </div>
+                                            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                                <div
+                                                    className={`h-full ${goal.color} rounded-full transition-all duration-700`}
+                                                    style={{ width: `${pct}%` }}
+                                                />
+                                            </div>
+                                            <div className="flex justify-between text-[10px] font-bold text-slate-600">
+                                                <span>{goal.current.toLocaleString()} BFC</span>
+                                                <span>{goal.target.toLocaleString()} BFC</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>

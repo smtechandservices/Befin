@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Clock, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, RefreshCw, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 
 interface NewsItem {
     title: string;
     source: string;
     time: string;
     image: string;
+    url?: string;
 }
 
 const fallbackNews: NewsItem[] = [
@@ -61,7 +62,8 @@ export default function FinanceNews() {
                         title: item.title,
                         source: item.author || 'Yahoo Finance',
                         time: new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                        image: item.thumbnail || item.enclosure?.link || (item.description.match(/src="([^"]+)"/) ? item.description.match(/src="([^"]+)"/)[1] : null)
+                        image: item.thumbnail || item.enclosure?.link || (item.description.match(/src="([^"]+)"/) ? item.description.match(/src="([^"]+)"/)[1] : null),
+                        url: item.link || null,
                     }));
                     setNews(formattedNews);
                 }
@@ -135,9 +137,23 @@ export default function FinanceNews() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                    <h2 key={currentIndex} className="font-bold text-[19px] lg:text-[21px] text-white leading-[1.3] animate-in fade-in slide-in-from-left-4 duration-700 tracking-tight">
-                        {currentNews.title}
-                    </h2>
+                    {currentNews.url ? (
+                        <a
+                            href={currentNews.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group/title"
+                        >
+                            <h2 key={currentIndex} className="font-bold text-[19px] lg:text-[21px] text-white leading-[1.3] animate-in fade-in slide-in-from-left-4 duration-700 tracking-tight group-hover/title:text-blue-300 transition-colors flex items-start gap-2">
+                                {currentNews.title}
+                                <ExternalLink className="w-4 h-4 shrink-0 mt-1 opacity-0 group-hover/title:opacity-100 transition-opacity text-blue-400" />
+                            </h2>
+                        </a>
+                    ) : (
+                        <h2 key={currentIndex} className="font-bold text-[19px] lg:text-[21px] text-white leading-[1.3] animate-in fade-in slide-in-from-left-4 duration-700 tracking-tight">
+                            {currentNews.title}
+                        </h2>
+                    )}
                     <div className="w-12 h-1 bg-[#0380f5] rounded-full mt-1"></div>
                 </div>
             </div>
