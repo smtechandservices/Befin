@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { authService, walletService } from '../../lib/api';
 import Sidebar from '../../components/Sidebar';
-import Navbar from '../../components/Navbar';
 import FinanceNews from '../../components/FinanceNews';
 import {
     Target, BookOpen, History, User, LogOut,
@@ -24,18 +23,25 @@ export default function Dashboard() {
     const [transactions, setTransactions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Referral States
+    const [referralCode, setReferralCode] = useState<string | null>(null);
+    const [generatingCode, setGeneratingCode] = useState(false);
+    const [copied, setCopied] = useState(false);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [profileData, walletData, txData] = await Promise.all([
+                const [profileData, walletData, txData, referralData] = await Promise.all([
                     authService.getProfile(),
                     walletService.getBalance(),
-                    walletService.getTransactions()
+                    walletService.getTransactions(),
+                    authService.getReferralCode()
                 ]);
 
                 setUser(profileData);
                 setWallet(walletData);
                 setTransactions(txData);
+                setReferralCode(referralData.code);
             } catch (error) {
                 console.error('Failed to fetch dashboard data:', error);
                 router.push('/login');
@@ -47,9 +53,29 @@ export default function Dashboard() {
         fetchData();
     }, [router]);
 
+    const handleGenerateCode = async () => {
+        setGeneratingCode(true);
+        try {
+            const data = await authService.generateReferralCode();
+            setReferralCode(data.code);
+        } catch (error) {
+            console.error('Failed to generate referral code:', error);
+        } finally {
+            setGeneratingCode(false);
+        }
+    };
+
+    const copyToClipboard = () => {
+        if (referralCode) {
+            navigator.clipboard.writeText(referralCode);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
+
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#111115] text-white">
+            <div className="min-h-screen flex items-center justify-center bg-[#0a0a0b] text-white">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0380f5]"></div>
             </div>
         );
@@ -58,53 +84,60 @@ export default function Dashboard() {
     const activeLink = "Home"; // For static rendering
 
     return (
-        <div className="flex h-screen bg-[#111115] font-sans text-white overflow-hidden">
+        <div className="flex h-screen bg-[#0a0a0b] font-sans text-white overflow-hidden">
             {/* Left Sidebar */}
             <Sidebar />
 
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col h-full overflow-hidden">
-                {/* Header Navbar */}
-                <Navbar title="Dashboard" />
+                {/* Local Header */}
+                <header className="px-10 py-8 shrink-0">
+                    <h1 className="text-[2.5rem] font-black tracking-tight text-white leading-tight">
+                        Dashboard
+                    </h1>
+                    <p className="text-slate-400 font-semibold text-sm tracking-wide opacity-80 uppercase italic">
+                        Welcome back to your financial hub
+                    </p>
+                </header>
 
                 {/* Scrollable Grid Container */}
                 <div className="flex-1 overflow-y-auto px-10 pb-10 no-scrollbar">
-                    <div className="flex flex-col lg:flex-row gap-8 min-h-full">
+                    <div className="flex flex-col lg:flex-row gap-8 mb-6">
 
                         {/* 70% Left Content Grid */}
                         <div className="flex-[2.5] flex flex-col gap-6">
 
-                            {/* Top Row: Quote & Pills */}
+                            {/* Row: Quote & Pills */}
                             <div className="flex flex-col md:flex-row gap-6">
                                 {/* Live Finance News Instead of Static Quote */}
                                 <FinanceNews />
 
                                 {/* Interactive Pills */}
                                 <div className="flex flex-col gap-3 min-w-[200px]">
-                                    <div className="bg-[#18181c] rounded-2xl flex items-center justify-between p-4 px-6 border border-white/5 hover:border-white/10 transition-colors cursor-pointer">
+                                    <div className="bg-[#18181c] rounded-xl flex items-center justify-between p-4 px-4 border border-white/5 hover:border-white/10 transition-colors">
                                         <span className="font-semibold text-white">Offers</span>
                                         <span className="w-6 h-6 rounded-full bg-[#FFCA28] text-black flex items-center justify-center text-xs font-bold">0</span>
                                     </div>
-                                    <div className="bg-[#18181c] rounded-2xl flex items-center justify-between p-4 px-6 border border-white/5 hover:border-white/10 transition-colors cursor-pointer">
+                                    <div className="bg-[#18181c] rounded-xl flex items-center justify-between p-4 px-4 border border-white/5 hover:border-white/10 transition-colors">
                                         <span className="font-semibold text-white">Rewards</span>
                                         <span className="w-6 h-6 rounded-full bg-[#29B6F6] text-white flex items-center justify-center text-xs font-bold">
                                             {transactions.filter(tx => ['reward', 'REWARD'].includes(tx.transaction_type)).length}
                                         </span>
                                     </div>
-                                    <div className="bg-[#18181c] rounded-2xl flex items-center justify-between p-4 px-6 border border-white/5 hover:border-white/10 transition-colors cursor-pointer">
+                                    <div className="bg-[#18181c] rounded-xl flex items-center justify-between p-4 px-4 border border-white/5 hover:border-white/10 transition-colors">
                                         <span className="font-semibold text-white">Cashbacks</span>
                                         <span className="w-6 h-6 rounded-full bg-[#EF5350] text-white flex items-center justify-center text-xs font-bold">0</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Middle Row: Overview & Refer Promo */}
+                            {/* Row: Overview & Refer Promo */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Overview Card */}
                                 <div className="bg-[#18181c] rounded-3xl p-6 border border-white/5">
-                                    <h3 className="text-xl font-bold text-white mb-6 px-1">Overview</h3>
+                                    <h3 className="text-xl font-bold text-white mb-4 px-1">Overview</h3>
                                     <div className="flex flex-col gap-4">
-                                        <div className="bg-[#111115] rounded-2xl p-4 border border-white/5 flex flex-col gap-1">
+                                        <div className="pt-2 ps-1 border-t border-white/5 flex flex-col gap-1">
                                             <div className="flex items-center gap-2 text-slate-400 text-sm font-semibold">
                                                 <span>Income</span>
                                                 <TrendingUp className="text-green-500 w-3 h-3" />
@@ -118,7 +151,7 @@ export default function Dashboard() {
                                                 })()} BeFin Coins
                                             </div>
                                         </div>
-                                        <div className="bg-[#111115] rounded-2xl p-4 border border-white/5 flex flex-col gap-1">
+                                        <div className="pt-2 ps-1 border-t border-white/5 flex flex-col gap-1">
                                             <div className="flex items-center gap-2 text-slate-400 text-sm font-semibold">
                                                 <span>Expenses</span>
                                                 <TrendingDown className="text-red-500 w-3 h-3" />
@@ -136,76 +169,48 @@ export default function Dashboard() {
                                 </div>
 
                                 {/* Refer & Earn Banner */}
-                                <div className="bg-gradient-to-r from-[#18181c] to-[#121216] rounded-3xl p-6 border border-white/5 relative overflow-hidden flex flex-col justify-center gap-3">
-                                    <div className="absolute right-[-20px] bottom-[-20px] opacity-30 text-[#FFCA28] rotate-12">
+                                <div className="bg-gradient-to-r from-[#18181c] to-[#121216] rounded-3xl p-6 border border-white/5 relative overflow-hidden flex flex-col justify-center">
+                                    <div className="absolute right-[-20px] bottom-[-20px] opacity-20 text-[#FFCA28] rotate-12">
                                         <Coins size={140} strokeWidth={1} />
                                     </div>
-                                    <h3 className="text-xl font-black text-white uppercase tracking-wider leading-tight w-2/3 relative z-10">
-                                        Refer &<br />Earn
-                                    </h3>
-                                    <p className="text-slate-400 text-xs mt-1 max-w-[140px] font-medium leading-relaxed relative z-10">
-                                        Guaranteed cashback upto 1000 BeFin Coins on every referral.
-                                    </p>
-                                    <button className="mt-2 bg-[#0380f5] text-white text-xs font-bold px-6 py-2.5 rounded-full w-fit hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20 relative z-10">
-                                        Let's go -{'>'}
-                                    </button>
-                                </div>
-                            </div>
 
-                            {/* Bottom Row: Transfers & Expenses */}
-                            <div className="flex flex-col xl:flex-row gap-6">
-                                {/* Money Transfers */}
-                                <div className="flex-1 min-w-[300px]">
-                                    <h3 className="text-xl font-bold text-white mb-4 px-1">Money Transfers</h3>
-                                    <div className="grid grid-cols-3 gap-4 h-[calc(100%-2.5rem)]">
-                                        <button className="bg-[#18181c] border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:bg-[#1c1c24] transition-colors group">
-                                            <Smartphone className="w-8 h-8 text-[#0380f5] group-hover:scale-110 transition-transform" />
-                                            <span className="text-[11px] font-medium text-slate-400 text-center">To<br />Mobile Number</span>
-                                        </button>
-                                        <button className="bg-[#18181c] border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:bg-[#1c1c24] transition-colors group">
-                                            <Landmark className="w-8 h-8 text-red-400 group-hover:scale-110 transition-transform" />
-                                            <span className="text-[11px] font-medium text-slate-400 text-center">To<br />Bank or UPI</span>
-                                        </button>
-                                        <button className="bg-[#18181c] border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:bg-[#1c1c24] transition-colors group">
-                                            <CreditCard className="w-8 h-8 text-orange-400 group-hover:scale-110 transition-transform" />
-                                            <span className="text-[11px] font-medium text-slate-400 text-center">To<br />Self Account</span>
-                                        </button>
-                                    </div>
-                                </div>
+                                    <div className="relative z-10 flex flex-col gap-2">
+                                        <h3 className="text-xl font-black text-white uppercase tracking-wider leading-tight">
+                                            Refer & Earn
+                                        </h3>
+                                        <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                                            Get guaranteed 100 BeFin Coins for every friend who joins BeFin using your referral code.
+                                        </p>
 
-                                {/* Expenses Breakdown */}
-                                <div className="flex-[1.5]">
-                                    <h3 className="text-xl font-bold text-white mb-4 px-1">Expenses Breakdown</h3>
-                                    <div className="bg-[#18181c] border border-white/5 rounded-3xl p-5 h-[calc(100%-2.5rem)]">
-                                        <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                                            {[
-                                                { icon: Home, label: 'Housing', amount: '0', pct: '00%*' },
-                                                { icon: Utensils, label: 'Food', amount: '0', pct: '00%*' },
-                                                { icon: Car, label: 'Transportation', amount: '0', pct: '00%*' },
-                                                { icon: Ticket, label: 'Entertainment', amount: '0', pct: '00%*' },
-                                                { icon: ShoppingBag, label: 'Shopping', amount: '0', pct: '00%*' },
-                                                { icon: Package, label: 'Others', amount: '0', pct: '00%*' }
-                                            ].map((exp, idx) => {
-                                                const Icon = exp.icon;
-                                                return (
-                                                    <div key={idx} className="flex items-center justify-between p-3 rounded-2xl hover:bg-[#1c1c24] transition-colors border border-transparent hover:border-white/5">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded-xl bg-[#111115] flex items-center justify-center opacity-80 border border-white/5">
-                                                                <Icon className="w-4 h-4 text-slate-400" />
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-xs text-slate-400 font-semibold">{exp.label}</p>
-                                                                <div className="flex items-baseline gap-1.5">
-                                                                    <span className="text-[15px] font-bold text-white">{exp.amount} BeFin Coins</span>
-                                                                    <span className="text-[10px] text-green-500 font-bold">{exp.pct} ↑</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="text-slate-500 text-xs">→</div>
+                                        {!referralCode ? (
+                                            <>
+                                                <button
+                                                    onClick={handleGenerateCode}
+                                                    disabled={generatingCode}
+                                                    className="mt-2 bg-[#0380f5] text-white text-[10px] font-black px-5 py-2 rounded-full w-fit hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 uppercase tracking-wider"
+                                                >
+                                                    {generatingCode ? 'Generating...' : 'Generate Code'}
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <div className="mt-1 flex flex-col gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="bg-[#111115] border border-white/10 rounded-xl px-4 py-2 flex items-center justify-center min-w-[100px]">
+                                                        <span className="text-lg font-black text-white tracking-[0.1em]">{referralCode}</span>
                                                     </div>
-                                                );
-                                            })}
-                                        </div>
+                                                    <button
+                                                        onClick={copyToClipboard}
+                                                        className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-colors border border-white/5"
+                                                        title="Copy Code"
+                                                    >
+                                                        {copied ? <span className="font-bold text-blue-400 px-4">Copied!</span> : <span className="font-bold px-4">Copy Code</span>}
+                                                    </button>
+                                                </div>
+                                                <p className="text-[10px] text-slate-500 font-bold italic">
+                                                    * Share this code to earn rewards
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -213,8 +218,8 @@ export default function Dashboard() {
 
                         {/* 30% Right Sidebar: Recent Transactions */}
                         <div className="flex-[1] flex flex-col">
-                            <h3 className="text-xl font-bold text-white mb-4 px-1">Recent Transactions</h3>
-                            <div className="bg-[#18181c] border border-white/5 rounded-3xl p-2 flex flex-col min-h-full overflow-y-auto no-scrollbar">
+                            <div className="bg-[#18181c] border border-white/5 rounded-3xl p-6 flex flex-col min-h-full overflow-y-auto no-scrollbar">
+                                <h3 className="text-xl font-bold text-white mb-4 px-1">Recent Transactions</h3>
                                 {transactions.length === 0 ? (
                                     // Placeholder entries like the image if real DB is empty
                                     <>
@@ -268,6 +273,64 @@ export default function Dashboard() {
                             </div>
                         </div>
 
+                    </div>
+
+                    {/* Row: Transfers & Expenses */}
+                    <div className="flex flex-col xl:flex-row gap-6">
+                        {/* Money Transfers */}
+                        <div className="flex-1 min-w-[300px]">
+                            <h3 className="text-xl font-bold text-white mb-4 px-1">Money Transfers</h3>
+                            <div className="grid grid-cols-3 gap-4 h-[calc(100%-2.5rem)]">
+                                <button className="bg-[#18181c] border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:bg-[#1c1c24] transition-colors group">
+                                    <Smartphone className="w-8 h-8 text-[#0380f5] group-hover:scale-110 transition-transform" />
+                                    <span className="text-[11px] font-medium text-slate-400 text-center">To<br />Mobile Number</span>
+                                </button>
+                                <button className="bg-[#18181c] border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:bg-[#1c1c24] transition-colors group">
+                                    <Landmark className="w-8 h-8 text-red-400 group-hover:scale-110 transition-transform" />
+                                    <span className="text-[11px] font-medium text-slate-400 text-center">To<br />Bank or UPI</span>
+                                </button>
+                                <button className="bg-[#18181c] border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:bg-[#1c1c24] transition-colors group">
+                                    <CreditCard className="w-8 h-8 text-orange-400 group-hover:scale-110 transition-transform" />
+                                    <span className="text-[11px] font-medium text-slate-400 text-center">To<br />Self Account</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Expenses Breakdown */}
+                        <div className="flex-[1.5]">
+                            <h3 className="text-xl font-bold text-white mb-4 px-1">Expenses Breakdown</h3>
+                            <div className="bg-[#18181c] border border-white/5 rounded-3xl p-5 h-[calc(100%-2.5rem)]">
+                                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                                    {[
+                                        { icon: Home, label: 'Housing', amount: '0', pct: '00%*' },
+                                        { icon: Utensils, label: 'Food', amount: '0', pct: '00%*' },
+                                        { icon: Car, label: 'Transportation', amount: '0', pct: '00%*' },
+                                        { icon: Ticket, label: 'Entertainment', amount: '0', pct: '00%*' },
+                                        { icon: ShoppingBag, label: 'Shopping', amount: '0', pct: '00%*' },
+                                        { icon: Package, label: 'Others', amount: '0', pct: '00%*' }
+                                    ].map((exp, idx) => {
+                                        const Icon = exp.icon;
+                                        return (
+                                            <div key={idx} className="flex items-center justify-between p-3 rounded-2xl hover:bg-[#1c1c24] transition-colors border border-transparent hover:border-white/5">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-[#111115] flex items-center justify-center opacity-80 border border-white/5">
+                                                        <Icon className="w-4 h-4 text-slate-400" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-slate-400 font-semibold">{exp.label}</p>
+                                                        <div className="flex items-baseline gap-1.5">
+                                                            <span className="text-[15px] font-bold text-white">{exp.amount} BeFin Coins</span>
+                                                            <span className="text-[10px] text-green-500 font-bold">{exp.pct} ↑</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-slate-500 text-xs">→</div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>

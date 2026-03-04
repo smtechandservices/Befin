@@ -16,6 +16,7 @@ export default function Signup() {
     last_name: '',
     dob: '',
     phone_number: '',
+    referral_code: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -168,6 +169,18 @@ export default function Signup() {
                   onChange={handleChange}
                 />
               </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[13px] font-semibold text-gray-700 ml-1">Referral Code (Optional)</label>
+              <input
+                type="text"
+                name="referral_code"
+                value={formData.referral_code}
+                className="w-full px-5 py-3.5 bg-white border border-[#e2e8f0] rounded-[14px] text-gray-900 text-[15px] focus:outline-none focus:border-[#0380f5] focus:ring-1 focus:ring-[#0380f5] placeholder:text-gray-400 transition-shadow"
+                placeholder="FREE100 (Optional)"
+                onChange={handleChange}
+              />
             </div>
 
             <div className="flex flex-col gap-2">

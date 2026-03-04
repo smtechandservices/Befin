@@ -1,8 +1,33 @@
+import random
+import string
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from .serializers import UserSerializer, RegisterSerializer
-from .models import User
+from .models import User, ReferralCode
+
+class ReferralCodeView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        code_obj = ReferralCode.objects.filter(referrer=request.user).first()
+        if not code_obj:
+            return Response({"code": None})
+        return Response({"code": code_obj.code})
+
+    def post(self, request):
+        # Generate a new unique 8-character code
+        existing_code = ReferralCode.objects.filter(referrer=request.user).first()
+        if existing_code:
+            return Response({"code": existing_code.code}, status=status.HTTP_200_OK)
+
+        while True:
+            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            if not ReferralCode.objects.filter(code=code).exists():
+                break
+        
+        code_obj = ReferralCode.objects.create(referrer=request.user, code=code)
+        return Response({"code": code_obj.code}, status=status.HTTP_201_CREATED)
 
 class RegisterView(APIView):
     permission_classes = (permissions.AllowAny,)

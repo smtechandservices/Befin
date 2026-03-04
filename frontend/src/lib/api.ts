@@ -37,6 +37,22 @@ export const authService = {
         const response = await api.get('/users/profile/');
         return response.data;
     },
+
+    updateProfile: async (data: any) => {
+        const response = await api.put('/users/profile/', data);
+        return response.data;
+    },
+
+
+    getReferralCode: async () => {
+        const response = await api.get('/users/referral-code/');
+        return response.data;
+    },
+
+    generateReferralCode: async () => {
+        const response = await api.post('/users/referral-code/');
+        return response.data;
+    },
 };
 
 export const walletService = {

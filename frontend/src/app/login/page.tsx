@@ -78,37 +78,6 @@ export default function Login() {
                         <h2 className="text-[3rem] text-gray-900 tracking-tight leading-none mt-1">Sign in</h2>
                     </div>
 
-                    {/* Social Logins */}
-                    <div className="flex flex-col sm:flex-row gap-4 mt-2">
-                        <button type="button" className="flex-[2] flex items-center justify-center gap-3 bg-[#f2f7ff] hover:bg-[#e6efff] transition-colors rounded-lg py-3.5 px-4 h-14">
-                            <span className="text-xl flex items-center">
-                                <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M24.3761 13.2526C24.3761 12.3174 24.2987 11.6349 24.1311 10.9271H13.2333V15.1484H19.63C19.5011 16.1975 18.8047 17.7774 17.2571 18.839L17.2354 18.9803L20.681 21.5962L20.9198 21.6196C23.1122 19.6353 24.3761 16.7157 24.3761 13.2526Z" fill="#4285F4" />
-                                    <path d="M13.2326 24.375C16.3664 24.375 18.9973 23.3638 20.919 21.6197L17.2563 18.839C16.2762 19.5089 14.9607 19.9766 13.2326 19.9766C10.1631 19.9766 7.55802 17.9923 6.62936 15.2496L6.49324 15.261L2.91038 17.9784L2.86353 18.106C4.77223 21.8218 8.69286 24.375 13.2326 24.375Z" fill="#34A853" />
-                                    <path d="M6.63007 15.2497C6.38504 14.5419 6.24323 13.7835 6.24323 13C6.24323 12.2163 6.38504 11.458 6.61718 10.7502L6.61069 10.5995L2.98292 7.83847L2.86422 7.8938C2.07755 9.43576 1.62616 11.1673 1.62616 13C1.62616 14.8326 2.07755 16.5641 2.86422 18.106L6.63007 15.2497Z" fill="#FBBC05" />
-                                    <path d="M13.2326 6.0233C15.4122 6.0233 16.8824 6.94594 17.7207 7.71696L20.9965 4.5825C18.9846 2.74987 16.3665 1.625 13.2326 1.625C8.69289 1.625 4.77224 4.17804 2.86353 7.89384L6.61649 10.7503C7.55805 8.00763 10.1632 6.0233 13.2326 6.0233Z" fill="#EB4335" />
-                                </svg>
-                            </span>
-                            <span className="text-[#0380f5] text-[15px] tracking-wide">Sign in with Google</span>
-                        </button>
-                        <div className="flex gap-4 flex-1">
-                            <button type="button" className="flex-1 flex items-center justify-center bg-[#f7f9fa] hover:bg-[#eaf0f4] transition-colors rounded-lg h-14">
-                                <span className="text-[#1877F2]">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M24 12.07C24 5.4 18.63 0 12 0C5.37 0 0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24V15.56H7.08V12.07H10.13V9.4C10.13 6.39 11.95 4.73 14.65 4.73C15.96 4.73 17.33 4.96 17.33 4.96V7.9H15.82C14.33 7.9 13.88 8.82 13.88 9.77V12.07H17.2L16.66 15.56H13.88V24C19.61 23.1 24 18.1 24 12.07Z" />
-                                    </svg>
-                                </span>
-                            </button>
-                            <button type="button" className="flex-1 flex items-center justify-center bg-[#f7f9fa] hover:bg-[#eaf0f4] transition-colors rounded-lg h-14">
-                                <span className="text-gray-900">
-                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M16.365 14.156c-.015-2.73 2.227-4.043 2.33-4.103-1.272-1.85-3.235-2.102-3.95-2.138-1.685-.171-3.298.995-4.15.995-.86 0-2.185-.97-3.605-.945-1.86.02-3.57 1.085-4.52 2.74-1.92 3.32-.495 8.245 1.375 10.95 1.01 1.47 2.235 3.09 3.82 3.045 1.5-.05 2.065-.965 3.82-.965 1.74 0 2.26.965 3.85.935 1.63-.03 2.66-1.465 3.65-2.925 1.15-1.685 1.615-3.32 1.635-3.415-.035-.02-3.185-1.215-3.2-3.675zm-2.455-5.32c.86-1.045 1.435-2.5 1.28-3.955-1.245.05-2.775.83-3.655 1.88-.78.93-1.42 2.4-1.25 3.83 1.385.105 2.76-.71 3.625-1.755z" />
-                                    </svg>
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-
                     <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
                         {error && (
                             <div className="bg-red-50 text-red-500 text-[13px] p-3 rounded-xl border border-red-100 font-medium">

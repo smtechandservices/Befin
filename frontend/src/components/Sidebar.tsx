@@ -19,10 +19,9 @@ export default function Sidebar() {
     const links = [
         { name: 'Home', icon: Home, href: '/dashboard' },
         { name: 'Wallet', icon: Wallet, href: '/wallet' },
-        { name: 'Goal Setter', icon: Target, href: '/goal-setter' },
+        { name: 'Goals', icon: Target, href: '/goals' },
         { name: 'Learning', icon: BookOpen, href: '#' },
-        { name: 'History', icon: History, href: '#' },
-        { name: 'Profile', icon: User, href: '#' },
+        { name: 'Profile', icon: User, href: '/profile' },
     ];
 
     return (
