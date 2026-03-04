@@ -34,12 +34,46 @@ export default function WalletPage() {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [copiedId, setCopiedId] = useState<number | null>(null);
+    const [redeemModalOpen, setRedeemModalOpen] = useState(false);
+    const [selectedDiscount, setSelectedDiscount] = useState<any>(null);
+    const [redeemLoading, setRedeemLoading] = useState(false);
+    const [redeemError, setRedeemError] = useState('');
 
     const copyCode = (id: number, code: string) => {
         if (!code) return;
         navigator.clipboard.writeText(code);
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
+    };
+
+    const handleRedeem = async () => {
+        if (!selectedDiscount) return;
+        setRedeemLoading(true);
+        setRedeemError('');
+
+        try {
+            const response = await walletService.redeemDiscount(selectedDiscount.id);
+            setRedeemModalOpen(false);
+
+            // Refresh wallet balance, discounts list, and recent transactions to reflect the redemption
+            const [walletData, discountsData, txData] = await Promise.all([
+                walletService.getBalance(),
+                walletService.getDiscounts(),
+                walletService.getTransactions()
+            ]);
+            if (walletData) setWallet(walletData);
+            setDiscounts(Array.isArray(discountsData) ? discountsData : []);
+            setTransactions(Array.isArray(txData) ? txData : []);
+
+            // Automatically copy to clipboard if the code is returned
+            if (response.code) {
+                copyCode(selectedDiscount.id, response.code);
+            }
+        } catch (error: any) {
+            setRedeemError(error.response?.data?.error || 'Failed to redeem discount');
+        } finally {
+            setRedeemLoading(false);
+        }
     };
 
     // Fetch suggestions when identifier changes
@@ -184,15 +218,21 @@ export default function WalletPage() {
                                 {/* Money Transfers */}
                                 <div className="bg-[#111111] rounded-[2.5rem] p-7 border border-white/5 flex flex-col gap-6">
                                     <h3 className="text-slate-300 font-bold text-sm uppercase tracking-widest">Money Transfers</h3>
-                                    <div className="grid grid-cols-1 gap-3">
+                                    <div className="grid grid-cols-2 gap-3">
                                         <button onClick={() => {
                                             setShowTransferModal(true);
                                             setShowConfirmation(false);
-                                        }} className="cursor-pointer group flex flex-col items-center gap-3 p-4 rounded-2xl bg-[#181818] border border-white/5 hover:bg-blue-600/10 hover:border-blue-500/30 transition-all">
+                                        }} className="cursor-pointer group flex flex-col items-center gap-3 p-4 rounded-xl bg-[#181818] border border-white/5 hover:bg-blue-600/10 hover:border-blue-500/30 transition-all">
                                             <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-all text-blue-500">
                                                 <Send className="w-6 h-6" />
                                             </div>
-                                            <span className="text-[10px] font-bold text-slate-500 group-hover:text-white transition-colors text-center">Transfer Money</span>
+                                            <span className="text-[10px] font-bold text-slate-500 group-hover:text-white transition-colors text-center">Transfer to User</span>
+                                        </button>
+                                        <button className="cursor-not-allowed group flex flex-col items-center gap-3 p-4 rounded-xl bg-[#181818] border border-white/5">
+                                            <div className="w-12 h-12 bg-slate-500/10 rounded-xl flex items-center justify-center">
+                                                <Send className="w-6 h-6" />
+                                            </div>
+                                            <span className="text-[10px] font-bold text-slate-500 group-hover:text-white transition-colors text-center">Coming Sooon</span>
                                         </button>
                                     </div>
                                 </div>
@@ -313,51 +353,60 @@ export default function WalletPage() {
                                 </div>
 
                                 {/* Discounts */}
-                                <div className="bg-[#111111] rounded-xl p-7 border border-white/5 flex flex-col gap-6">
-                                    <h3 className="text-slate-300 font-bold text-base tracking-tight">Discounts</h3>
-                                    <div className="flex flex-col gap-4 pr-1 max-h-[420px] overflow-y-auto no-scrollbar">
+                                <div className="bg-[#111111] rounded-xl p-7 border border-white/5 flex flex-col items-stretch">
+                                    <h3 className="text-slate-300 font-bold text-base tracking-tight mb-6 shrink-0">Discounts</h3>
+                                    <div className="flex flex-col gap-4 pr-1 min-h-[150px] max-h-[280px] overflow-y-auto no-scrollbar">
                                         {discounts.map((discount: any) => (
-                                            <div key={discount.id} onClick={() => copyCode(discount.id, discount.code)} className="group relative px-3 py-4 bg-[#181818] rounded-[1.25rem] border border-white/5 hover:border-white/10 transition-all overflow-hidden cursor-pointer">
-                                                {/* Default view */}
-                                                <div className="flex justify-between items-center transition-opacity duration-200 group-hover:opacity-0">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center font-black overflow-hidden ${discount.brand_name === 'Amazon' ? 'bg-white text-black' :
-                                                            discount.brand_name === 'Starbucks' ? 'bg-[#00704A] text-white' :
-                                                                'bg-[#E23744] text-white'
-                                                            }`}>
-                                                            {discount.image_url ? (
-                                                                <Image src={discount.image_url} alt={discount.brand_name} fill className="object-cover" />
-                                                            ) : (
-                                                                discount.brand_name[0]
-                                                            )}
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm font-bold text-white">{discount.brand_name}</p>
-                                                            <div className="flex items-center gap-1 mt-0.5">
-                                                                <div className="w-3 h-3 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
-                                                                </div>
-                                                                <p className="text-[10px] text-yellow-500 font-bold">{parseFloat(discount.coin_cost).toLocaleString()} Coins</p>
-                                                            </div>
-                                                        </div>
+                                            <div key={discount.id} className={`group relative px-4 py-4 rounded-[1.25rem] border border-white/5 hover:border-white/10 transition-all overflow-hidden shrink-0 flex justify-between items-center h-20 ${discount.is_redeemed ? 'bg-yellow-500/15' : 'bg-[#181818]'
+                                                }`}>
+                                                <div className="flex items-center gap-4 transition-transform duration-300 group-hover:translate-x-1">
+                                                    <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center font-black overflow-hidden shadow-md ${discount.brand_name === 'Amazon' ? 'bg-white text-black' :
+                                                        discount.brand_name === 'Starbucks' ? 'bg-[#00704A] text-white' :
+                                                            'bg-[#E23744] text-white'
+                                                        }`}>
+                                                        {discount.image_url ? (
+                                                            <Image src={discount.image_url} alt={discount.brand_name} fill className="object-cover" />
+                                                        ) : (
+                                                            discount.brand_name[0]
+                                                        )}
                                                     </div>
-                                                    <div className="px-3 py-1.5 rounded-lg text-md font-bold text-white">
-                                                        {discount.percentage}% Off
+                                                    <div>
+                                                        <p className="text-sm font-bold text-white leading-tight">{discount.brand_name}</p>
+                                                        <div className="flex items-center gap-1 mt-1">
+                                                            <div className="w-3 h-3 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
+                                                            </div>
+                                                            <p className="text-[10px] text-yellow-500 font-bold">{parseFloat(discount.coin_cost).toLocaleString()} Coins</p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                {/* Hover overlay: claim code */}
-                                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-[#181818] rounded-[1.25rem]">
-                                                    {copiedId === discount.id ? (
-                                                        <>
-                                                            <p className="text-[10px] font-black uppercase tracking-widest text-green-400">Copied!</p>
-                                                            <p className="text-base font-black text-green-400 tracking-[0.15em] font-mono">{discount.code || 'N/A'}</p>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Click to copy</p>
-                                                            <p className="text-base font-black text-white tracking-[0.15em] font-mono">{discount.code || 'N/A'}</p>
-                                                        </>
-                                                    )}
+
+                                                <div className="relative w-28 h-10 overflow-hidden rounded-xl">
+                                                    {/* Default State: Percentage Off */}
+                                                    <div className="absolute inset-0 flex items-center justify-end pr-2 transition-transform duration-300 group-hover:-translate-y-full">
+                                                        <div className="px-3 py-1.5 rounded-lg text-md font-bold text-white bg-white/5 border border-white/10">
+                                                            {discount.percentage}% Off
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Hover State: Action Button */}
+                                                    <div className="absolute inset-0 flex items-center justify-end transition-transform duration-300 translate-y-full group-hover:translate-y-0">
+                                                        {discount.is_redeemed ? (
+                                                            <button
+                                                                onClick={() => copyCode(discount.id, discount.code)}
+                                                                className="cursor-pointer h-9 px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-colors w-full flex items-center justify-center"
+                                                            >
+                                                                {copiedId === discount.id ? <span className="text-green-400">Copied!</span> : 'Copy Code'}
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => { setSelectedDiscount(discount); setRedeemModalOpen(true); }}
+                                                                className="cursor-pointer h-9 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-colors shadow-lg shadow-blue-500/20 w-full flex items-center justify-center"
+                                                            >
+                                                                Redeem
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}
@@ -380,7 +429,7 @@ export default function WalletPage() {
                                                 return (
                                                     <div key={tx.id} className="flex items-center justify-between px-2 py-4 rounded-[1.5rem] hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/5">
                                                         <div className="flex items-center gap-5">
-                                                            <div className={`rounded-2xl flex items-center justify-center text-xl ${isDeposit ? 'text-blue-400' : 'text-slate-400'
+                                                            <div className={`rounded-2xl flex items-center justify-center text-xl ${isDeposit ? 'text-blue-400' : 'text-red-400'
                                                                 }`}>
                                                                 {isDeposit ? <ArrowDownLeft className="w-7 h-7" /> : <ArrowUpRight className="w-7 h-7" />}
                                                             </div>
@@ -397,9 +446,8 @@ export default function WalletPage() {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <p className={`text-lg font-black tracking-tight flex items-baseline gap-1 ${isDeposit ? 'text-blue-400' : 'text-white'}`}>
+                                                        <p className={`text-nowrap text-lg font-black tracking-tight ${isDeposit ? 'text-blue-400' : 'text-red-400'}`}>
                                                             {isDeposit ? '+' : '-'} {parseFloat(tx.amount).toLocaleString()}
-                                                            <span className="text-xs font-bold opacity-80">Coins</span>
                                                         </p>
                                                     </div>
                                                 );
@@ -413,6 +461,73 @@ export default function WalletPage() {
                     </div>
                 </div>
             </main>
+
+            {/* Redeem Discount Modal */}
+            {redeemModalOpen && selectedDiscount && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="bg-[#111111] rounded-[2rem] border border-white/10 w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center p-6 border-b border-white/5">
+                            <h2 className="text-xl font-black text-white">Redeem Discount</h2>
+                            <button
+                                onClick={() => { setRedeemModalOpen(false); setRedeemError(''); }}
+                                className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6 flex flex-col gap-6">
+                            {redeemError && (
+                                <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-center justify-center">
+                                    <p className="text-red-400 font-bold text-sm text-center">{redeemError}</p>
+                                </div>
+                            )}
+                            <div className="flex flex-col items-center text-center gap-4">
+                                <div className={`relative w-20 h-20 rounded-2xl flex items-center justify-center font-black overflow-hidden shadow-xl ${selectedDiscount.brand_name === 'Amazon' ? 'bg-white text-black' : selectedDiscount.brand_name === 'Starbucks' ? 'bg-[#00704A] text-white' : 'bg-[#E23744] text-white'}`}>
+                                    {selectedDiscount.image_url ? (
+                                        <Image src={selectedDiscount.image_url} alt={selectedDiscount.brand_name} fill className="object-cover" />
+                                    ) : (
+                                        <span className="text-4xl">{selectedDiscount.brand_name[0]}</span>
+                                    )}
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-black text-white">{selectedDiscount.percentage}% off {selectedDiscount.brand_name}</h3>
+                                    <p className="text-slate-400 text-sm mt-2 leading-relaxed">{selectedDiscount.description}</p>
+                                </div>
+                                <div className="w-full h-[1px] bg-white/5 my-2"></div>
+                                <div className="flex justify-between items-center w-full px-4">
+                                    <span className="text-slate-400 font-bold uppercase tracking-wider text-xs">Total Cost</span>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-4 h-4 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                                            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                                        </div>
+                                        <span className="text-xl font-black text-white">{parseFloat(selectedDiscount.coin_cost).toLocaleString()} Coins</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 border-t border-white/5 bg-[#181818] flex gap-4">
+                            <button
+                                onClick={() => { setRedeemModalOpen(false); setRedeemError(''); }}
+                                className="flex-1 py-4 font-bold rounded-xl text-slate-400 bg-white/5 hover:bg-white/10 hover:text-white transition-colors"
+                                disabled={redeemLoading}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleRedeem}
+                                disabled={redeemLoading}
+                                className="flex-1 py-4 font-black rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {redeemLoading ? (
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                ) : (
+                                    'Confirm Redeem'
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Transfer Modal */}
             {showTransferModal && (

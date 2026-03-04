@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from .models import Wallet, Transaction, VirtualCard, Discount
+from .models import Wallet, Transaction, VirtualCard, Discount, RedeemedDiscount
 from .serializers import WalletSerializer, TransactionSerializer, DiscountSerializer
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -69,7 +69,7 @@ class DiscountListView(APIView):
 
     def get(self, request):
         discounts = Discount.objects.filter(is_active=True)
-        serializer = DiscountSerializer(discounts, many=True)
+        serializer = DiscountSerializer(discounts, many=True, context={'request': request})
         return Response(serializer.data)
 
 class TransferView(APIView):
@@ -140,4 +140,49 @@ class TransferView(APIView):
             )
 
         return Response({'success': 'Transfer successful'}, status=status.HTTP_200_OK)
+
+class RedeemDiscountView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request, pk):
+        try:
+            discount = Discount.objects.get(pk=pk, is_active=True)
+        except Discount.DoesNotExist:
+            return Response({'error': 'Discount not found or inactive'}, status=status.HTTP_404_NOT_FOUND)
+
+        with transaction.atomic():
+            wallet, created = Wallet.objects.select_for_update().get_or_create(user=request.user)
+
+            # Check if already redeemed
+            if RedeemedDiscount.objects.filter(user=request.user, discount=discount).exists():
+                 return Response({'error': 'You have already redeemed this discount', 'code': discount.code}, status=status.HTTP_400_BAD_REQUEST)
+
+            if wallet.balance < discount.coin_cost:
+                return Response({'error': f'Insufficient BeFin coins. You need {discount.coin_cost} coins.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Deduct balance
+            wallet.balance -= discount.coin_cost
+            wallet.save()
+
+            # Record redemption
+            RedeemedDiscount.objects.create(
+                user=request.user,
+                discount=discount
+            )
+
+            # Create transaction record
+            from .models import Transaction
+            Transaction.objects.create(
+                wallet=wallet,
+                amount=discount.coin_cost,
+                transaction_type='purchase',
+                description=f'Redeemed: {discount.brand_name}'
+            )
+
+        return Response({
+            'success': 'Discount redeemed successfully!',
+            'code': discount.code,
+            'new_balance': wallet.balance
+        }, status=status.HTTP_200_OK)
+
 

@@ -11,21 +11,6 @@ interface NewsItem {
     url?: string;
 }
 
-const fallbackNews: NewsItem[] = [
-    {
-        title: "Bitcoin hits new all-time high as institutional demand surges.",
-        source: "Market Focus",
-        time: "Just now",
-        image: "https://images.unsplash.com/photo-1518546305927-5a555bb7020d?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        title: "Federal Reserve hints at potential rate cuts in the upcoming quarter.",
-        source: "Economic Update",
-        time: "15 min ago",
-        image: "https://images.unsplash.com/photo-1611974715853-2b8ef959d0bb?auto=format&fit=crop&q=80&w=800"
-    }
-];
-
 export default function FinanceNews() {
     const [news, setNews] = useState<NewsItem[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -35,17 +20,17 @@ export default function FinanceNews() {
     const startRotation = () => {
         if (rotationRef.current) clearInterval(rotationRef.current);
         rotationRef.current = setInterval(() => {
-            setCurrentIndex((prev) => (prev + 1) % (news.length || fallbackNews.length));
+            setCurrentIndex((prev) => (prev + 1) % (news.length));
         }, 8000);
     };
 
     const handleNext = () => {
-        setCurrentIndex((prev) => (prev + 1) % (news.length || fallbackNews.length));
+        setCurrentIndex((prev) => (prev + 1) % (news.length));
         startRotation(); // Reset timer on manual click
     };
 
     const handlePrev = () => {
-        setCurrentIndex((prev) => (prev === 0 ? (news.length || fallbackNews.length) - 1 : prev - 1));
+        setCurrentIndex((prev) => (prev === 0 ? (news.length) - 1 : prev - 1));
         startRotation(); // Reset timer on manual click
     };
 

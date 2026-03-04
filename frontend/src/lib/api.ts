@@ -80,6 +80,11 @@ export const walletService = {
         const response = await api.get(`/wallet/search-users/?q=${query}`);
         return response.data;
     },
+
+    redeemDiscount: async (discountId: number) => {
+        const response = await api.post(`/wallet/discounts/${discountId}/redeem/`);
+        return response.data;
+    },
 };
 
 export const gamesService = {

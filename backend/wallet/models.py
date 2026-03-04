@@ -82,3 +82,12 @@ class Discount(models.Model):
 
     def __str__(self):
         return f"{self.brand_name} - {self.percentage}% off"
+
+class RedeemedDiscount(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='redeemed_discounts')
+    discount = models.ForeignKey(Discount, on_delete=models.CASCADE)
+    redeemed_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username} redeemed {self.discount.brand_name}"

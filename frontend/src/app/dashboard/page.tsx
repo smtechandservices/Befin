@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { authService, walletService } from '../../lib/api';
+import { authService, walletService, gamesService } from '../../lib/api';
 import Sidebar from '../../components/Sidebar';
 import FinanceNews from '../../components/FinanceNews';
 import LoadingScreen from '../../components/LoadingScreen';
@@ -12,7 +12,7 @@ import {
     Target, BookOpen, History, User, LogOut,
     Home, Wallet, Search, Bell, CircleHelp, TrendingUp, TrendingDown,
     Smartphone, Landmark, CreditCard,
-    Send, Plus, LineChart, Coins,
+    Send, Plus, LineChart, Coins, Gamepad2,
     ArrowUpRight, ArrowDownLeft, ChevronRight, Eye, EyeOff
 } from 'lucide-react';
 
@@ -28,6 +28,8 @@ export default function Dashboard() {
     const [referralCode, setReferralCode] = useState<string | null>(null);
     const [generatingCode, setGeneratingCode] = useState(false);
     const [showReferral, setShowReferral] = useState(false);
+    const [games, setGames] = useState<any[]>([]);
+
 
     const QUOTES = [
         { text: "Do not save what is left after spending; instead spend what is left after saving.", author: "Warren Buffett" },
@@ -45,12 +47,13 @@ export default function Dashboard() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [profileData, walletData, txData, referralData, discountsData] = await Promise.all([
+                const [profileData, walletData, txData, referralData, discountsData, gamesData] = await Promise.all([
                     authService.getProfile(),
                     walletService.getBalance(),
                     walletService.getTransactions(),
                     authService.getReferralCode(),
                     walletService.getDiscounts(),
+                    gamesService.getGames(),
                     new Promise(resolve => setTimeout(resolve, 500))
                 ]);
 
@@ -59,6 +62,7 @@ export default function Dashboard() {
                 setTransactions(txData);
                 setReferralCode(referralData.code);
                 setDiscounts(discountsData);
+                setGames(Array.isArray(gamesData) ? gamesData : []);
             } catch (error) {
                 console.error('Failed to fetch dashboard data:', error);
                 router.push('/login');
@@ -94,8 +98,6 @@ export default function Dashboard() {
         return <LoadingScreen />;
     }
 
-    const activeLink = "Home"; // For static rendering
-
     return (
         <div className="flex h-screen bg-[#0a0a0b] font-sans text-white overflow-hidden">
             {/* Left Sidebar */}
@@ -121,7 +123,7 @@ export default function Dashboard() {
                         <div className="flex-[2.5] flex flex-col gap-6">
 
                             {/* Row: Quote & Pills */}
-                            <div className="flex flex-col md:flex-row gap-6">
+                            <div className="flex flex-col md:flex-row items-center gap-6">
                                 {/* Live Finance News Instead of Static Quote */}
                                 <FinanceNews />
 
@@ -138,8 +140,10 @@ export default function Dashboard() {
                                         </span>
                                     </div>
                                     <div className="bg-[#18181c] rounded-xl flex items-center justify-between p-4 px-4 border border-white/5 hover:border-white/10 transition-colors">
-                                        <span className="font-semibold text-white">Cashbacks</span>
-                                        <span className="w-6 h-6 rounded-full bg-[#EF5350] text-white flex items-center justify-center text-xs font-bold">0</span>
+                                        <span className="font-semibold text-white">Redeemed</span>
+                                        <span className="w-6 h-6 rounded-full bg-[#EF5350] text-white flex items-center justify-center text-xs font-bold">
+                                            {discounts.filter(d => d.is_redeemed).length}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -243,34 +247,17 @@ export default function Dashboard() {
                             <div className="bg-[#18181c] border border-white/5 rounded-3xl p-6 flex flex-col min-h-full overflow-y-auto no-scrollbar">
                                 <h3 className="text-xl font-bold text-white mb-4 px-1">Recent Transactions</h3>
                                 {transactions.length === 0 ? (
-                                    // Placeholder entries like the image if real DB is empty
-                                    <>
-                                        {[
-                                            { title: 'Mobile Recharge', date: '12 Aug 2022 | 10:00', amount: '-666 BeFin Coins', isNegative: true },
-                                            { title: 'Electricity Bill', date: '03 Aug 2022 | 14:00', amount: '-14,000 BeFin Coins', isNegative: true },
-                                            { title: 'Rent Payment', date: '31 July 2022 | 21:00', amount: '+8,500 BeFin Coins', isNegative: false },
-                                            { title: 'DLF Emporio', date: '10 June 2022 | 18:00', amount: '-24,999 BeFin Coins', isNegative: true },
-                                        ].map((tx, idx) => (
-                                            <div key={idx} className="flex items-center justify-between p-4 rounded-2xl hover:bg-[#1c1c24] transition-colors group cursor-pointer border-b border-white/5 last:border-0 border-solid">
-                                                <div className="flex items-center gap-4">
-                                                    <div>
-                                                        <p className="font-semibold text-white text-[15px]">{tx.title}</p>
-                                                        <p className="text-[11px] text-slate-500 font-medium mt-0.5 tracking-wide">{tx.date}</p>
-                                                    </div>
-                                                </div>
-                                                <div className={`font-bold text-[14px] ${tx.isNegative ? 'text-white' : 'text-[#0380f5]'}`}>
-                                                    {tx.amount}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </>
+                                    <div className="flex flex-col items-center justify-center flex-1 py-12 text-slate-500 gap-3">
+                                        <History className="w-10 h-10 opacity-30" />
+                                        <p className="text-sm font-semibold">No recent transactions</p>
+                                    </div>
                                 ) : (
                                     <>
                                         {transactions.map((tx: any, idx: number) => {
                                             const isDeposit = ['reward', 'deposit', 'REWARD', 'DEPOSIT'].includes(tx.transaction_type);
                                             const isReward = ['reward', 'REWARD'].includes(tx.transaction_type);
                                             return (
-                                                <div key={tx.id} className="flex items-center justify-between p-4 rounded-2xl hover:bg-white/[0.03] transition-all group cursor-pointer border-b border-white/5 last:border-0 border-solid relative">
+                                                <div key={tx.id} className="flex items-center justify-between px-2 py-4 rounded-xl transition-all group border-b border-white/5 last:border-0 border-solid relative">
                                                     <div className="flex items-center gap-4">
                                                         <div>
                                                             <div className="flex items-center gap-2">
@@ -284,7 +271,7 @@ export default function Dashboard() {
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <div className={`font-black text-[15px] tracking-tight ${isDeposit ? 'text-blue-400' : 'text-white/40'}`}>
+                                                    <div className={`font-black text-[15px] tracking-tight ${isDeposit ? 'text-blue-400' : 'text-red-400'}`}>
                                                         {isDeposit ? '+' : '-'}{parseFloat(tx.amount).toLocaleString()}
                                                     </div>
                                                 </div>
@@ -317,19 +304,25 @@ export default function Dashboard() {
                                 </Link>
                             </div>
                             <div className="flex flex-col gap-3 h-[calc(100%-2.5rem)]">
-                                {[
-                                    { icon: TrendingUp, label: 'Stock Market Simulator', color: 'text-blue-400', bg: 'bg-blue-500/10' },
-                                    { icon: Coins, label: 'A-Z of Money', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
-                                    { icon: LineChart, label: 'Finance Wordle', color: 'text-green-400', bg: 'bg-green-500/10' },
-                                ].map(({ icon: Icon, label, color, bg }) => (
-                                    <div key={label} className="flex items-center gap-4 p-4 bg-[#18181c] rounded-xl border border-white/5 hover:border-white/10 hover:bg-[#1c1c24] transition-all cursor-not-allowed">
-                                        <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center shrink-0`}>
-                                            <Icon className={`w-5 h-5 ${color}`} />
-                                        </div>
-                                        <span className="text-sm font-bold text-slate-300 flex-1">{label}</span>
-                                        <span className="text-[9px] font-black uppercase tracking-wider text-slate-600 bg-white/5 px-2 py-1 rounded-lg">Soon</span>
-                                    </div>
-                                ))}
+                                {games.length > 0 && (
+                                    games.slice(0, 2).map((game: any) => (
+                                        <Link href="/learning" key={game.id} className="flex items-center gap-4 p-4 bg-[#18181c] rounded-xl border border-white/5 hover:border-blue-500/20 hover:bg-[#1c1c24] transition-all cursor-pointer group">
+                                            <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 overflow-hidden relative">
+                                                {game.game_logo ? (
+                                                    <Image src={game.game_logo} alt={game.name} fill className="object-cover" />
+                                                ) : (
+                                                    <Gamepad2 className="w-5 h-5 text-blue-400" />
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col flex-1">
+                                                <span className="text-sm font-bold text-slate-300 group-hover:text-white transition-colors">{game.name}</span>
+                                                <span className="text-[10px] font-bold text-slate-500">{game.genre} • Age {game.age_req}+</span>
+                                                {game.description && <p className="text-[10px] text-slate-400 mt-1 line-clamp-1">{game.description}</p>}
+                                            </div>
+                                            <span className="text-[9px] font-black uppercase tracking-wider text-blue-400 bg-blue-500/10 px-2 py-1 rounded-lg">Live</span>
+                                        </Link>
+                                    ))
+                                )}
                             </div>
                         </div>
 

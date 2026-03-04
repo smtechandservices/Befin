@@ -3,6 +3,6 @@ from .models import Game
 
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):
-    list_display = ('name', 'age_req', 'genre', 'url', 'created_at')
+    list_display = ('name', 'age_req', 'genre', 'created_at')
     search_fields = ('name', 'genre')
     list_filter = ('genre', 'age_req')

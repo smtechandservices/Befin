@@ -2,9 +2,12 @@ from django.db import models
 
 class Game(models.Model):
     name = models.CharField(max_length=255)
-    age_req = models.PositiveIntegerField(default=0)
+    description = models.TextField(null=True, blank=True)
+    age_req = models.PositiveIntegerField(null=True, blank=True)
     genre = models.CharField(max_length=100)
     url = models.URLField(max_length=500)
+    game_banner = models.CharField(max_length=1000, null=True, blank=True)
+    game_logo = models.CharField(max_length=1000, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
