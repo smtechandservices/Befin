@@ -134,15 +134,15 @@ export default function Dashboard() {
                                         <span className="w-6 h-6 rounded-full bg-[#FFCA28] text-black flex items-center justify-center text-xs font-bold">{discounts.length}</span>
                                     </Link>
                                     <div className="bg-[#18181c] rounded-xl flex items-center justify-between p-4 px-4 border border-white/5 hover:border-white/10 transition-colors">
-                                        <span className="font-semibold text-white">Rewards</span>
-                                        <span className="w-6 h-6 rounded-full bg-[#29B6F6] text-white flex items-center justify-center text-xs font-bold">
-                                            {transactions.filter(tx => ['reward', 'REWARD'].includes(tx.transaction_type)).length}
-                                        </span>
-                                    </div>
-                                    <div className="bg-[#18181c] rounded-xl flex items-center justify-between p-4 px-4 border border-white/5 hover:border-white/10 transition-colors">
                                         <span className="font-semibold text-white">Redeemed</span>
                                         <span className="w-6 h-6 rounded-full bg-[#EF5350] text-white flex items-center justify-center text-xs font-bold">
                                             {discounts.filter(d => d.is_redeemed).length}
+                                        </span>
+                                    </div>
+                                    <div className="bg-[#18181c] rounded-xl flex items-center justify-between p-4 px-4 border border-white/5 hover:border-white/10 transition-colors">
+                                        <span className="font-semibold text-white">Rewards</span>
+                                        <span className="w-6 h-6 rounded-full bg-[#29B6F6] text-white flex items-center justify-center text-xs font-bold">
+                                            {transactions.filter(tx => ['reward', 'REWARD'].includes(tx.transaction_type)).length}
                                         </span>
                                     </div>
                                 </div>
@@ -305,7 +305,7 @@ export default function Dashboard() {
                             </div>
                             <div className="flex flex-col gap-3 h-[calc(100%-2.5rem)]">
                                 {games.length > 0 && (
-                                    games.slice(0, 2).map((game: any) => (
+                                    games.slice(0, 3).map((game: any) => (
                                         <Link href="/learning" key={game.id} className="flex items-center gap-4 p-4 bg-[#18181c] rounded-xl border border-white/5 hover:border-blue-500/20 hover:bg-[#1c1c24] transition-all cursor-pointer group">
                                             <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 overflow-hidden relative">
                                                 {game.game_logo ? (
@@ -345,6 +345,7 @@ export default function Dashboard() {
                                     { label: 'Emergency Fund', target: 10000, current: 4200, color: 'bg-blue-500' },
                                     { label: 'New Laptop', target: 5000, current: 3750, color: 'bg-purple-500' },
                                     { label: 'Vacation Trip', target: 8000, current: 1100, color: 'bg-green-500' },
+                                    { label: 'New Phone', target: 15000, current: 2500, color: 'bg-yellow-500' },
                                 ].map((goal) => {
                                     const pct = Math.min(100, Math.round((goal.current / goal.target) * 100));
                                     return (

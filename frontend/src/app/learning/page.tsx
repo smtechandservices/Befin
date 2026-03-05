@@ -68,53 +68,69 @@ export default function LearningPage() {
                         const suggestedGames = games.filter(g => userAge >= (g.age_req || 0));
                         const moreGamesToTry = games.filter(g => userAge < (g.age_req || 0));
 
-                        const topSuggested = suggestedGames.slice(0, 2);
-                        const remainingSuggested = suggestedGames.slice(2);
+                        const liveSuggestedGames = suggestedGames.filter(g => g.is_live !== false);
+                        const nonLiveSuggestedGames = suggestedGames.filter(g => g.is_live === false);
 
-                        const renderGameCard = (game: any) => (
-                            <div
-                                key={game.id}
-                                onClick={() => { setSelectedGame(game); setIsGameModalOpen(true); }}
-                                className="group relative bg-[#111] rounded-[2rem] border border-white/5 hover:border-blue-500/20 hover:shadow-xl hover:shadow-blue-500/5 transition-all cursor-pointer overflow-hidden flex flex-col"
-                            >
-                                {/* Top Banner Image */}
-                                <div className="w-full h-36 relative overflow-hidden bg-[#18181c] shrink-0">
-                                    {game.game_banner ? (
-                                        <div
-                                            className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-700"
-                                            style={{ backgroundImage: `url(${game.game_banner})` }}
-                                        />
-                                    ) : (
-                                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 group-hover:scale-105 transition-transform duration-700" />
+                        const topSuggested = liveSuggestedGames.slice(0, 2);
+                        const remainingSuggested = [...liveSuggestedGames.slice(2), ...nonLiveSuggestedGames];
+
+                        const renderGameCard = (game: any) => {
+                            const isLive = game.is_live !== false;
+                            return (
+                                <div
+                                    key={game.id}
+                                    onClick={() => { if (isLive) { setSelectedGame(game); setIsGameModalOpen(true); } }}
+                                    className={`group relative bg-[#111] rounded-[2rem] border border-white/5 ${isLive ? 'hover:border-blue-500/20 hover:shadow-xl hover:shadow-blue-500/5 cursor-pointer' : 'opacity-70 cursor-not-allowed'} transition-all overflow-hidden flex flex-col`}
+                                >
+                                    {!isLive && (
+                                        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] z-20 flex items-center justify-center">
+                                            <div className="px-5 py-2.5 bg-[#18181c] border border-white/10 rounded-xl shadow-2xl transform -rotate-6">
+                                                <span className="text-white font-black uppercase tracking-widest text-xs flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                                                    Coming Soon
+                                                </span>
+                                            </div>
+                                        </div>
                                     )}
-                                    {/* Bottom gradient fade into card body */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[#111] to-transparent opacity-90"></div>
-
-                                    {/* Tag on top right */}
-                                    <div className="absolute top-4 right-4 px-2.5 py-1 rounded-lg bg-black/40 backdrop-blur-md border border-white/10 flex items-center shadow-sm z-10">
-                                        <span className="text-[9px] font-black text-white uppercase tracking-widest">{game.genre}</span>
-                                    </div>
-                                </div>
-
-                                <div className="relative p-6 pt-0 flex flex-col gap-3 flex-1">
-                                    {/* Logo overlapping the banner */}
-                                    <div className="w-16 h-16 bg-[#111] rounded-2xl flex items-center justify-center overflow-hidden shadow-xl border border-white/10 shrink-0 -mt-8 relative z-10 group-hover:-translate-y-1 transition-transform duration-500">
-                                        <div className="absolute inset-0 bg-white/5"></div>
-                                        {game.game_logo ? (
-                                            <img src={game.game_logo} alt={game.name} className="w-full h-full object-cover relative z-10" />
+                                    {/* Top Banner Image */}
+                                    <div className="w-full h-36 relative overflow-hidden bg-[#18181c] shrink-0">
+                                        {game.game_banner ? (
+                                            <div
+                                                className={`absolute inset-0 bg-cover bg-center ${isLive ? 'group-hover:scale-105 transition-transform duration-700' : ''}`}
+                                                style={{ backgroundImage: `url(${game.game_banner})` }}
+                                            />
                                         ) : (
-                                            <Gamepad2 className="w-8 h-8 text-blue-400 relative z-10" />
+                                            <div className={`absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 ${isLive ? 'group-hover:scale-105 transition-transform duration-700' : ''}`} />
                                         )}
+                                        {/* Bottom gradient fade into card body */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-[#111] to-transparent opacity-90"></div>
+
+                                        {/* Tag on top right */}
+                                        <div className="absolute top-4 right-4 px-2.5 py-1 rounded-lg bg-black/40 backdrop-blur-md border border-white/10 flex items-center shadow-sm z-10">
+                                            <span className="text-[9px] font-black text-white uppercase tracking-widest">{game.genre}</span>
+                                        </div>
                                     </div>
 
-                                    <div className="flex flex-col flex-1">
-                                        <h4 className="text-xl font-black text-white leading-tight mb-1 group-hover:text-blue-400 transition-colors">{game.name}</h4>
-                                        <p className="text-[10px] font-black tracking-wider uppercase text-slate-500 mb-3">Age {game.age_req}+</p>
-                                        {game.description && <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">{game.description}</p>}
+                                    <div className="relative p-6 pt-0 flex flex-col gap-3 flex-1">
+                                        {/* Logo overlapping the banner */}
+                                        <div className={`w-16 h-16 bg-[#111] rounded-2xl flex items-center justify-center overflow-hidden shadow-xl border border-white/10 shrink-0 -mt-8 relative z-10 ${isLive ? 'group-hover:-translate-y-1 transition-transform duration-500' : ''}`}>
+                                            <div className="absolute inset-0 bg-white/5"></div>
+                                            {game.game_logo ? (
+                                                <img src={game.game_logo} alt={game.name} className="w-full h-full object-cover relative z-10" />
+                                            ) : (
+                                                <Gamepad2 className="w-8 h-8 text-blue-400 relative z-10" />
+                                            )}
+                                        </div>
+
+                                        <div className="flex flex-col flex-1">
+                                            <h4 className={`text-xl font-black text-white leading-tight mb-1 ${isLive ? 'group-hover:text-blue-400 transition-colors' : ''}`}>{game.name}</h4>
+                                            <p className="text-[10px] font-black tracking-wider uppercase text-slate-500 mb-3">Age {game.age_req}+</p>
+                                            {game.description && <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">{game.description}</p>}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
+                            );
+                        };
 
                         return (
                             <div className="mx-auto flex flex-col gap-10 py-4">
@@ -164,7 +180,7 @@ export default function LearningPage() {
                                                     {games.length > 0 ? 'Interactive Games' : 'Available Games'}
                                                 </h3>
                                                 <p className="text-xs font-bold text-slate-500">
-                                                    {games.length > 0 ? 'Interactive financial experiences ready to play' : 'Coming soon to the BeFin ecosystem'}
+                                                    {games.length > 0 ? 'Interactive financial experiences' : 'Coming soon to the BeFin ecosystem'}
                                                 </p>
                                             </div>
                                         </div>

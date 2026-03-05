@@ -31,7 +31,7 @@ export default function GamePlayModal({ isOpen, onClose, game, balance }: GamePl
 
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white/70 hover:text-white transition-colors border border-white/10 z-20"
+                        className="cursor-pointer absolute top-4 right-4 p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white/70 hover:text-white transition-colors border border-white/10 z-20"
                     >
                         <X className="w-5 h-5" />
                     </button>

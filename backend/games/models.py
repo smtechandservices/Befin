@@ -8,6 +8,7 @@ class Game(models.Model):
     url = models.URLField(max_length=500)
     game_banner = models.CharField(max_length=1000, null=True, blank=True)
     game_logo = models.CharField(max_length=1000, null=True, blank=True)
+    is_live = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
