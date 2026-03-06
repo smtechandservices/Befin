@@ -57,17 +57,6 @@ class Goal(models.Model):
     def __str__(self):
         return f"{self.title} - {self.current_amount}/{self.target_amount}"
 
-class Leaderboard(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='leaderboard_entries')
-    game_name = models.CharField(max_length=100)
-    score = models.IntegerField(default=0)
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-score']
-
-    def __str__(self):
-        return f"{self.user.username} - {self.game_name}: {self.score}"
 
 class Discount(models.Model):
     brand_name = models.CharField(max_length=100)

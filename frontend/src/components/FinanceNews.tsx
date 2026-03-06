@@ -88,7 +88,7 @@ export default function FinanceNews() {
     const currentNews = news[currentIndex] || fallbackNews[currentIndex % fallbackNews.length] || fallbackNews[0];
 
     return (
-        <div className="flex-1 rounded-3xl border border-white/5 flex items-center relative overflow-hidden group min-h-[180px] transition-all duration-500 shadow-2xl">
+        <div className="flex-1 rounded-3xl border border-white/5 flex items-center relative overflow-hidden group min-h-[250px] transition-all duration-500 shadow-2xl">
             {/* Background Image Banner */}
             <div className="absolute inset-0 z-0">
                 {currentNews.image && (

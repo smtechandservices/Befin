@@ -33,7 +33,7 @@ export default function GoalSetterPage() {
                 </header>
 
                 {/* Coming Soon Content */}
-                <div className="flex-1 overflow-y-auto px-10 pb-10 no-scrollbar flex items-center justify-center">
+                <div className="flex-1 overflow-y-auto px-10 pb-10 flex items-center justify-center">
                     <div className="flex flex-col items-center justify-center max-w-md text-center">
                         <div className="w-24 h-24 bg-[#18181c] rounded-full border border-white/5 flex items-center justify-center mb-6 relative">
                             <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl"></div>

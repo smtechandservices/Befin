@@ -52,7 +52,7 @@ export default function LearningPage() {
                     <p className="text-slate-400 font-semibold text-sm tracking-wide opacity-80 uppercase italic">Finance games & interactive challenges</p>
                 </header>
 
-                <div className="flex-1 overflow-y-auto px-10 pb-10 no-scrollbar">
+                <div className="flex-1 overflow-y-auto px-10 pb-10">
                     {(() => {
                         let userAge = 18; // Default
                         if (user?.dob) {

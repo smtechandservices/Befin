@@ -196,7 +196,7 @@ export default function WalletPage() {
                     <p className="text-slate-400 font-semibold text-sm tracking-wide opacity-80 uppercase italic">Manage your digital assets and rewards</p>
                 </header>
 
-                <div className="flex-1 overflow-y-auto px-8 lg:px-10 pb-10 no-scrollbar">
+                <div className="flex-1 overflow-y-auto px-8 lg:px-10 pb-10">
                     <div className="max-w-[1600px] mx-auto flex flex-col gap-8">
 
                         {/* Main Content Grid */}
@@ -353,9 +353,9 @@ export default function WalletPage() {
                                 </div>
 
                                 {/* Discounts */}
-                                <div className="bg-[#111111] rounded-xl p-7 border border-white/5 flex flex-col items-stretch">
+                                <div className="bg-[#111111] rounded-xl p-7 border border-white/5 flex flex-col items-stretch md:mb-12">
                                     <h3 className="text-slate-300 font-bold text-base tracking-tight mb-6 shrink-0">Discounts</h3>
-                                    <div className="flex flex-col gap-4 pr-1 min-h-[150px] max-h-[280px] overflow-y-auto no-scrollbar">
+                                    <div className="flex flex-col gap-4 pr-1 max-h-[300px] overflow-y-auto no-scrollbar">
                                         {discounts.map((discount: any) => (
                                             <div key={discount.id} className={`group relative px-4 py-4 rounded-[1.25rem] border border-white/5 hover:border-white/10 transition-all overflow-hidden shrink-0 flex justify-between items-center h-20 ${discount.is_redeemed ? 'bg-yellow-500/15' : 'bg-[#181818]'
                                                 }`}>
@@ -416,9 +416,10 @@ export default function WalletPage() {
 
                             {/* RIGHT COLUMN: Recent Transactions */}
                             <div className="lg:col-span-4 flex flex-col gap-6">
-                                <div className="bg-[#111111] rounded-[2.5rem] p-7 border border-white/5 flex flex-col h-full min-h-[600px]">
+                                <div className="bg-[#111111] rounded-[2.5rem] p-7 border border-white/5 flex flex-col h-full no-scrollbar md:mb-12">
                                     <h3 className="text-slate-200 font-black text-xl tracking-tight mb-6">Recent Transactions</h3>
-                                    <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar">
+                                    <hr className="border-white/10 py-1 px-4" />
+                                    <div className="flex flex-col gap-2 h-[600px] overflow-y-auto no-scrollbar">
                                         {transactions.length === 0 ? (
                                             <div className="p-8 text-center text-slate-500 font-medium italic">
                                                 No recent activity.
@@ -427,7 +428,7 @@ export default function WalletPage() {
                                             transactions.map((tx: any) => {
                                                 const isDeposit = ['reward', 'deposit', 'REWARD', 'DEPOSIT'].includes(tx.transaction_type);
                                                 return (
-                                                    <div key={tx.id} className="flex items-center justify-between px-2 py-4 rounded-[1.5rem] hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/5">
+                                                    <div key={tx.id} className="flex items-center justify-between py-4">
                                                         <div className="flex items-center gap-5">
                                                             <div className={`rounded-2xl flex items-center justify-center text-xl ${isDeposit ? 'text-blue-400' : 'text-red-400'
                                                                 }`}>

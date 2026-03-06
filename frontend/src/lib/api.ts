@@ -85,11 +85,26 @@ export const walletService = {
         const response = await api.post(`/wallet/discounts/${discountId}/redeem/`);
         return response.data;
     },
+
+    awardCoins: async (slug: string, coins: number, gameScore: number) => {
+        const response = await api.post(`/games/${slug}/award/`, { coins, game_score: gameScore });
+        return response.data;
+    },
 };
 
 export const gamesService = {
     getGames: async () => {
         const response = await api.get('/games/');
+        return response.data;
+    },
+
+    getLeaderboard: async (slug: string) => {
+        const response = await api.get(`/games/${slug}/leaderboard/`);
+        return response.data;
+    },
+
+    getGameTransactions: async (slug: string) => {
+        const response = await api.get(`/games/${slug}/my_transactions/`);
         return response.data;
     },
 };
