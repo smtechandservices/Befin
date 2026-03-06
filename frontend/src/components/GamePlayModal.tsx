@@ -16,9 +16,9 @@ export default function GamePlayModal({ isOpen, onClose, game, balance }: GamePl
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
-            <div className="bg-[#111] rounded-[2rem] border border-white/10 w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="bg-[#111] rounded-[2rem] border border-white/10 w-full max-w-lg max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl animate-in zoom-in-95 duration-300">
                 {/* Header Banner */}
-                <div className="w-full h-40 relative overflow-hidden bg-[#18181c] shrink-0">
+                <div className="w-full h-32 md:h-40 relative overflow-hidden bg-[#18181c] shrink-0">
                     {game.game_banner ? (
                         <div
                             className="absolute inset-0 bg-cover bg-center"
@@ -37,10 +37,10 @@ export default function GamePlayModal({ isOpen, onClose, game, balance }: GamePl
                     </button>
                 </div>
 
-                <div className="relative p-8 pt-0 flex flex-col gap-6">
+                <div className="relative p-6 md:p-8 pt-0 flex flex-col gap-5 md:gap-6">
                     {/* Game Details */}
-                    <div className="flex flex-col items-center text-center -mt-12 relative z-10">
-                        <div className="w-24 h-24 bg-[#111] rounded-3xl flex items-center justify-center overflow-hidden shadow-2xl border border-white/10 shrink-0 mb-4">
+                    <div className="flex flex-col items-center text-center -mt-10 md:-mt-12 relative z-10">
+                        <div className="w-20 h-20 md:w-24 md:h-24 bg-[#111] rounded-[1.5rem] md:rounded-3xl flex items-center justify-center overflow-hidden shadow-2xl border border-white/10 shrink-0 mb-4">
                             {game.game_logo ? (
                                 <Image src={game.game_logo} alt={game.name} width={96} height={96} className="w-full h-full object-cover relative z-10" />
                             ) : (
@@ -53,23 +53,23 @@ export default function GamePlayModal({ isOpen, onClose, game, balance }: GamePl
                             <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black text-slate-400 uppercase tracking-widest">Age {game.age_req}+</span>
                         </div>
 
-                        <h2 className="text-3xl font-black text-white tracking-tight mb-2">{game.name}</h2>
-                        <p className="text-sm text-slate-400 leading-relaxed px-4">{game.description || 'Interactive financial learning experience.'}</p>
+                        <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-2">{game.name}</h2>
+                        <p className="text-[13px] md:text-sm text-slate-400 leading-relaxed px-2 md:px-4">{game.description || 'Interactive financial learning experience.'}</p>
                     </div>
 
                     <div className="w-full h-[1px] bg-white/5"></div>
 
                     {/* Wallet Section */}
-                    <div className="flex justify-between items-center bg-[#181818] p-5 rounded-lg border border-white/5">
+                    <div className="flex justify-between items-center bg-[#181818] p-4 md:p-5 rounded-2xl border border-white/5">
                         <div className="flex flex-col gap-1">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Available Balance</span>
-                            <span className="text-white font-bold text-sm">BeFin Wallet</span>
+                            <span className="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest">Available Balance</span>
+                            <span className="text-white font-bold text-xs md:text-sm">BeFin Wallet</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                            <div className="w-4 h-4 rounded-full bg-yellow-500/20 flex items-center justify-center hidden xs:flex">
                                 <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
                             </div>
-                            <span className="text-xl font-black text-white tracking-tight">{formattedBalance} <span className="text-xs text-slate-500 font-bold ml-1">BFC</span></span>
+                            <span className="text-lg md:text-xl font-black text-white tracking-tight">{formattedBalance} <span className="text-[10px] md:text-xs text-slate-500 font-bold ml-1">BFC</span></span>
                         </div>
                     </div>
 

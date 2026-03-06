@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Clock, RefreshCw, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { Clock, RefreshCw, ChevronLeft, ChevronRight, ExternalLink, Calendar } from 'lucide-react';
 
 interface NewsItem {
     title: string;
     source: string;
     time: string;
+    date?: string;
     image: string;
     url?: string;
 }
@@ -47,6 +48,7 @@ export default function FinanceNews() {
                         title: item.title,
                         source: item.author || 'Yahoo Finance',
                         time: new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        date: new Date(item.pubDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }),
                         image: item.thumbnail || item.enclosure?.link || (item.description.match(/src="([^"]+)"/) ? item.description.match(/src="([^"]+)"/)[1] : null),
                         url: item.link || null,
                     }));
@@ -54,7 +56,6 @@ export default function FinanceNews() {
                 }
             } catch (err) {
                 console.error('Failed to fetch finance news:', err);
-                setNews(fallbackNews);
             } finally {
                 setLoading(false);
             }
@@ -77,15 +78,18 @@ export default function FinanceNews() {
         };
     }, [news, loading]);
 
-    if (loading && news.length === 0) {
-        return (
-            <div className="flex-1 bg-[#18181c] rounded-3xl p-8 border border-white/5 flex items-center justify-center min-h-[180px]">
-                <RefreshCw className="animate-spin text-[#0380f5] w-6 h-6" />
-            </div>
-        );
+    if (news.length === 0) {
+        if (loading) {
+            return (
+                <div className="flex-1 bg-[#18181c] rounded-3xl p-8 border border-white/5 flex items-center justify-center min-h-[180px]">
+                    <RefreshCw className="animate-spin text-[#0380f5] w-6 h-6" />
+                </div>
+            );
+        }
+        return null;
     }
 
-    const currentNews = news[currentIndex] || fallbackNews[currentIndex % fallbackNews.length] || fallbackNews[0];
+    const currentNews = news[currentIndex];
 
     return (
         <div className="flex-1 rounded-3xl border border-white/5 flex items-center relative overflow-hidden group min-h-[250px] transition-all duration-500 shadow-2xl">
@@ -105,7 +109,7 @@ export default function FinanceNews() {
             </div>
 
             {/* Content Section */}
-            <div className="relative z-20 p-8 flex flex-col justify-center gap-3 w-full lg:w-4/5">
+            <div className="relative z-20 p-6 md:p-8 flex flex-col justify-center gap-2 md:gap-3 w-full lg:w-4/5">
                 <div className="flex items-center gap-3">
                     {/* Live Indicator */}
                     <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-full">
@@ -115,6 +119,12 @@ export default function FinanceNews() {
                         </span>
                         <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Live News</span>
                     </div>
+                    {currentNews.date && (
+                        <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-bold uppercase tracking-wide">
+                            <Calendar size={12} />
+                            {currentNews.date}
+                        </div>
+                    )}
                     <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-bold uppercase tracking-wide">
                         <Clock size={12} />
                         {currentNews.time}
@@ -129,13 +139,13 @@ export default function FinanceNews() {
                             rel="noopener noreferrer"
                             className="group/title"
                         >
-                            <h2 key={currentIndex} className="font-bold text-[19px] lg:text-[21px] text-white leading-[1.3] animate-in fade-in slide-in-from-left-4 duration-700 tracking-tight group-hover/title:text-blue-300 transition-colors flex items-start gap-2">
+                            <h2 key={currentIndex} className="font-bold text-[16px] sm:text-[19px] lg:text-[21px] text-white leading-[1.3] animate-in fade-in slide-in-from-left-4 duration-700 tracking-tight group-hover/title:text-blue-300 transition-colors flex items-start gap-2">
                                 {currentNews.title}
-                                <ExternalLink className="w-4 h-4 shrink-0 mt-1 opacity-0 group-hover/title:opacity-100 transition-opacity text-blue-400" />
+                                <ExternalLink className="w-4 h-4 shrink-0 mt-1 opacity-0 group-hover/title:opacity-100 transition-opacity text-blue-400 hidden md:block" />
                             </h2>
                         </a>
                     ) : (
-                        <h2 key={currentIndex} className="font-bold text-[19px] lg:text-[21px] text-white leading-[1.3] animate-in fade-in slide-in-from-left-4 duration-700 tracking-tight">
+                        <h2 key={currentIndex} className="font-bold text-[16px] sm:text-[19px] lg:text-[21px] text-white leading-[1.3] animate-in fade-in slide-in-from-left-4 duration-700 tracking-tight">
                             {currentNews.title}
                         </h2>
                     )}

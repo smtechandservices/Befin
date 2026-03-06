@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
-import { Gamepad2, Sparkles, TrendingUp, Coins, BarChart2, PieChart, Play, MousePointer2 } from 'lucide-react';
+import { Gamepad2, Sparkles, TrendingUp, Coins, BarChart2, PieChart, Play, MousePointer2, Menu } from 'lucide-react';
 import LoadingScreen from '@/components/LoadingScreen';
 import GamePlayModal from '@/components/GamePlayModal';
 import { gamesService, authService, walletService } from '@/lib/api';
@@ -14,6 +14,7 @@ export default function LearningPage() {
     const [walletBalance, setWalletBalance] = useState<number>(0);
     const [selectedGame, setSelectedGame] = useState<any>(null);
     const [isGameModalOpen, setIsGameModalOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -44,15 +45,24 @@ export default function LearningPage() {
 
     return (
         <div className="flex h-screen bg-[#0a0a0b] font-sans text-white overflow-hidden">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
             <main className="flex-1 flex flex-col h-full overflow-hidden">
-                <header className="px-10 py-8 shrink-0">
-                    <h1 className="text-[2.5rem] font-black tracking-tight text-white leading-tight">Learning</h1>
-                    <p className="text-slate-400 font-semibold text-sm tracking-wide opacity-80 uppercase italic">Finance games & interactive challenges</p>
+                <header className="px-6 md:px-10 py-6 md:py-8 shrink-0 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl md:text-[2.5rem] font-black tracking-tight text-white leading-tight">Learning</h1>
+                        <p className="text-slate-400 font-semibold text-[10px] md:text-sm tracking-wide opacity-80 uppercase italic">Interactive challenges</p>
+                    </div>
+                    {/* Mobile Toggle */}
+                    <button
+                        onClick={() => setIsSidebarOpen(true)}
+                        className="md:hidden p-2 text-white bg-white/5 rounded-xl border border-white/10"
+                    >
+                        <Menu size={24} />
+                    </button>
                 </header>
 
-                <div className="flex-1 overflow-y-auto px-10 pb-10">
+                <div className="flex-1 overflow-y-auto px-6 md:px-10 pb-10">
                     {(() => {
                         let userAge = 18; // Default
                         if (user?.dob) {
@@ -154,19 +164,19 @@ export default function LearningPage() {
 
                                     <div className="relative z-10 flex flex-col lg:flex-row items-center gap-10">
                                         <div className="flex-1 text-center lg:text-left">
-                                            <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-4">
+                                            <h2 className="text-3xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-4 text-balance">
                                                 Level up your <span className="text-blue-500 text-glow">Finance IQ</span>
                                             </h2>
-                                            <p className="text-slate-400 text-base font-medium leading-relaxed mb-6 max-w-md mx-auto lg:mx-0">
+                                            <p className="text-slate-400 text-sm lg:text-base font-medium leading-relaxed mb-6 max-w-md mx-auto lg:mx-0">
                                                 Master the stock market, budgeting, and investment strategies through interactive challenges. Gaming meets financial freedom.
                                             </p>
-                                            <button className="bg-white text-black px-8 py-3 rounded-full font-black text-xs uppercase tracking-widest opacity-80">
+                                            <button className="bg-white text-black px-6 lg:px-8 py-3 rounded-full font-black text-[10px] lg:text-xs uppercase tracking-widest opacity-80">
                                                 Games Every Finance Lover Will Enjoy
                                             </button>
                                         </div>
-                                        <div className="w-48 h-48 lg:w-64 lg:h-64 bg-[#18181c] rounded-[3rem] border border-white/5 flex items-center justify-center relative group">
+                                        <div className="w-40 h-40 lg:w-64 lg:h-64 bg-[#18181c] rounded-[2.5rem] lg:rounded-[3rem] border border-white/5 flex items-center justify-center relative group">
                                             <div className="absolute inset-4 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2rem] opacity-20 filter blur-2xl group-hover:opacity-40 transition-opacity"></div>
-                                            <Gamepad2 className="w-20 h-20 text-[#0380f5] relative z-10 animate-pulse" />
+                                            <Gamepad2 className="w-16 h-16 lg:w-20 lg:h-20 text-[#0380f5] relative z-10 animate-pulse" />
                                         </div>
                                     </div>
                                 </div>

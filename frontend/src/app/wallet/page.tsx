@@ -11,7 +11,7 @@ import {
     Search, Bell, CircleHelp, ArrowUpRight, ArrowDownLeft,
     Plus, Send, CreditCard, Download, ExternalLink, RefreshCw,
     Eye, EyeOff, Smartphone, Landmark, ShieldCheck, ChevronRight,
-    QrCode, Settings, Clock, MoreVertical, X
+    QrCode, Settings, Clock, MoreVertical, X, Menu
 } from 'lucide-react';
 import LoadingScreen from '@/components/LoadingScreen';
 
@@ -38,6 +38,8 @@ export default function WalletPage() {
     const [selectedDiscount, setSelectedDiscount] = useState<any>(null);
     const [redeemLoading, setRedeemLoading] = useState(false);
     const [redeemError, setRedeemError] = useState('');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [flippedId, setFlippedId] = useState<number | null>(null);
 
     const copyCode = (id: number, code: string) => {
         if (!code) return;
@@ -187,23 +189,32 @@ export default function WalletPage() {
 
     return (
         <div className="flex h-screen bg-[#0a0a0b] text-slate-200 overflow-hidden selection:bg-blue-500/30">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
             <main className="flex-1 flex flex-col h-full overflow-hidden">
                 {/* Local Header */}
-                <header className="px-8 lg:px-10 py-8 shrink-0">
-                    <h1 className="text-[2.5rem] font-black tracking-tight text-white leading-tight">My Wallet</h1>
-                    <p className="text-slate-400 font-semibold text-sm tracking-wide opacity-80 uppercase italic">Manage your digital assets and rewards</p>
+                <header className="px-6 md:px-8 lg:px-10 py-6 md:py-8 shrink-0 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl md:text-[2.5rem] font-black tracking-tight text-white leading-tight">My Wallet</h1>
+                        <p className="text-slate-400 font-semibold text-[10px] md:text-sm tracking-wide opacity-80 uppercase italic">Your financial assets</p>
+                    </div>
+                    {/* Mobile Toggle */}
+                    <button
+                        onClick={() => setIsSidebarOpen(true)}
+                        className="md:hidden p-2 text-white bg-white/5 rounded-xl border border-white/10"
+                    >
+                        <Menu size={24} />
+                    </button>
                 </header>
 
-                <div className="flex-1 overflow-y-auto px-8 lg:px-10 pb-10">
+                <div className="flex-1 overflow-y-auto px-6 md:px-8 lg:px-10 pb-10">
                     <div className="max-w-[1600px] mx-auto flex flex-col gap-8">
 
                         {/* Main Content Grid */}
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6">
 
                             {/* LEFT COLUMN: Balance, Transfers, Discounts */}
-                            <div className="lg:col-span-4 flex flex-col gap-6">
+                            <div className="lg:col-span-12 xl:col-span-4 flex flex-col gap-6 order-2 xl:order-1">
 
                                 {/* Wallet Balance */}
                                 <div className="bg-[#111111] rounded-[2.5rem] p-7 border border-white/5 flex flex-col gap-6">
@@ -299,7 +310,7 @@ export default function WalletPage() {
                             </div>
 
                             {/* MIDDLE COLUMN: Card and Settings */}
-                            <div className="lg:col-span-4 flex flex-col gap-6">
+                            <div className="lg:col-span-12 xl:col-span-4 flex flex-col gap-6 order-1 xl:order-2">
 
                                 {/* Card Section */}
                                 <div className="flex flex-col gap-4">
@@ -353,16 +364,15 @@ export default function WalletPage() {
                                 </div>
 
                                 {/* Discounts */}
-                                <div className="bg-[#111111] rounded-xl p-7 border border-white/5 flex flex-col items-stretch md:mb-12">
+                                <div className="bg-[#111111] rounded-xl p-7 border border-white/5 flex flex-col items-stretch xl:mb-12">
                                     <h3 className="text-slate-300 font-bold text-base tracking-tight mb-6 shrink-0">Discounts</h3>
                                     <div className="flex flex-col gap-4 pr-1 max-h-[300px] overflow-y-auto no-scrollbar">
                                         {discounts.map((discount: any) => (
-                                            <div key={discount.id} className={`group relative px-4 py-4 rounded-[1.25rem] border border-white/5 hover:border-white/10 transition-all overflow-hidden shrink-0 flex justify-between items-center h-20 ${discount.is_redeemed ? 'bg-yellow-500/15' : 'bg-[#181818]'
-                                                }`}>
-                                                <div className="flex items-center gap-4 transition-transform duration-300 group-hover:translate-x-1">
-                                                    <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center font-black overflow-hidden shadow-md ${discount.brand_name === 'Amazon' ? 'bg-white text-black' :
-                                                        discount.brand_name === 'Starbucks' ? 'bg-[#00704A] text-white' :
-                                                            'bg-[#E23744] text-white'
+                                            <div key={discount.id}
+                                                onClick={() => setFlippedId(flippedId === discount.id ? null : discount.id)}
+                                                className={`relative px-4 py-4 rounded-[1.25rem] border border-white/5 hover:border-white/10 transition-all overflow-hidden shrink-0 flex justify-between items-center h-20 cursor-pointer ${discount.is_redeemed ? 'bg-yellow-500/15' : 'bg-[#181818]'}`}>
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`relative w-12 h-12 rounded-xl hidden md:flex items-center justify-center font-black overflow-hidden shadow-md 'bg-[#E23744] text-white'
                                                         }`}>
                                                         {discount.image_url ? (
                                                             <Image src={discount.image_url} alt={discount.brand_name} fill className="object-cover" />
@@ -381,26 +391,26 @@ export default function WalletPage() {
                                                     </div>
                                                 </div>
 
-                                                <div className="relative w-28 h-10 overflow-hidden rounded-xl">
+                                                <div className="relative w-32 h-10 overflow-hidden rounded-xl shrink-0">
                                                     {/* Default State: Percentage Off */}
-                                                    <div className="absolute inset-0 flex items-center justify-end pr-2 transition-transform duration-300 group-hover:-translate-y-full">
-                                                        <div className="px-3 py-1.5 rounded-lg text-md font-bold text-white bg-white/5 border border-white/10">
+                                                    <div className={`absolute inset-0 flex items-center justify-end pr-2 transition-transform duration-300 ${flippedId === discount.id ? '-translate-y-full' : 'translate-y-0'}`}>
+                                                        <div className="px-3 py-1.5 rounded-lg text-sm font-bold text-white bg-white/5 border border-white/10 whitespace-nowrap">
                                                             {discount.percentage}% Off
                                                         </div>
                                                     </div>
 
-                                                    {/* Hover State: Action Button */}
-                                                    <div className="absolute inset-0 flex items-center justify-end transition-transform duration-300 translate-y-full group-hover:translate-y-0">
+                                                    {/* Flipped State: Action Button */}
+                                                    <div className={`absolute inset-0 flex items-center justify-end transition-transform duration-300 ${flippedId === discount.id ? 'translate-y-0' : 'translate-y-full'}`}>
                                                         {discount.is_redeemed ? (
                                                             <button
-                                                                onClick={() => copyCode(discount.id, discount.code)}
+                                                                onClick={(e) => { e.stopPropagation(); copyCode(discount.id, discount.code); }}
                                                                 className="cursor-pointer h-9 px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-colors w-full flex items-center justify-center"
                                                             >
                                                                 {copiedId === discount.id ? <span className="text-green-400">Copied!</span> : 'Copy Code'}
                                                             </button>
                                                         ) : (
                                                             <button
-                                                                onClick={() => { setSelectedDiscount(discount); setRedeemModalOpen(true); }}
+                                                                onClick={(e) => { e.stopPropagation(); setSelectedDiscount(discount); setRedeemModalOpen(true); }}
                                                                 className="cursor-pointer h-9 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-colors shadow-lg shadow-blue-500/20 w-full flex items-center justify-center"
                                                             >
                                                                 Redeem
@@ -415,8 +425,8 @@ export default function WalletPage() {
                             </div>
 
                             {/* RIGHT COLUMN: Recent Transactions */}
-                            <div className="lg:col-span-4 flex flex-col gap-6">
-                                <div className="bg-[#111111] rounded-[2.5rem] p-7 border border-white/5 flex flex-col h-full no-scrollbar md:mb-12">
+                            <div className="lg:col-span-12 xl:col-span-4 flex flex-col gap-6 order-3">
+                                <div className="bg-[#111111] rounded-[2.5rem] p-7 border border-white/5 flex flex-col h-auto xl:h-full no-scrollbar xl:mb-12">
                                     <h3 className="text-slate-200 font-black text-xl tracking-tight mb-6">Recent Transactions</h3>
                                     <hr className="border-white/10 py-1 px-4" />
                                     <div className="flex flex-col gap-2 h-[600px] overflow-y-auto no-scrollbar">

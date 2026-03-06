@@ -47,37 +47,37 @@ export default function Login() {
     };
 
     return (
-        <div className="h-[100vh] flex flex-col lg:flex-row bg-[#0380f5] font-sans">
+        <div className="min-h-screen lg:h-screen flex flex-col lg:flex-row bg-[#0380f5] font-sans overflow-y-auto lg:overflow-hidden">
             {/* Left Section: Info & Illustration */}
-            <div className="flex-1 flex flex-col justify-center p-8 lg:p-20 text-white gap-6">
+            <div className="flex-1 flex flex-col justify-center p-8 md:p-12 lg:p-20 text-white gap-6 shrink-0 lg:shrink">
                 <div className="flex items-center gap-3">
-                    <Image src="/images/logo.png" alt="BeFin Logo" width={48} height={48} className="object-contain" />
-                    <span className="text-[2rem] tracking-tight">BeFin</span>
+                    <Image src="/images/logo.png" alt="BeFin Logo" width={40} height={40} className="object-contain md:w-[48px] md:h-[48px]" />
+                    <span className="text-2xl md:text-[2rem] tracking-tight">BeFin</span>
                 </div>
 
                 <div className="max-w-[500px]">
-                    <h1 className="text-[2.75rem] font-semibold leading-[1.15] mb-2">
-                        Learn. Play. Earn<br />with BeFin
+                    <h1 className="text-3xl md:text-[2.75rem] font-semibold leading-[1.15] mb-2 text-balance">
+                        Learn. Play. Earn<br className="hidden md:block" /> with BeFin
                     </h1>
                     <p className="text-base opacity-90 leading-relaxed font-medium">
                         Master games through games, virtual investing, and secure payment - all in one app.
                     </p>
                 </div>
 
-                <div className="relative w-full aspect-square max-w-[450px] md:ml-10 mt-2 flex items-center justify-center">
+                <div className="relative w-full aspect-square max-w-[300px] md:max-w-[450px] mx-auto lg:ml-10 mt-2 flex items-center justify-center hidden sm:flex">
                     <div className="absolute w-100 bg-white/10 rounded-full blur-3xl"></div>
                     <Image src="/images/login.png" alt="BeFin Login Illustration" width={600} height={600} className="relative z-10 transform hover:-translate-y-2 transition-transform duration-500 object-contain" priority />
                 </div>
             </div>
 
             {/* Right Section: Login Card */}
-            <div className="flex-[1.2] flex items-center justify-center">
-                <div className="w-full max-w-[550px] bg-white rounded-xl px-8 py-12 flex flex-col gap-8 shadow-2xl">
+            <div className="flex-[1.2] flex items-center justify-center p-4 md:p-8 lg:p-0">
+                <div className="w-full max-w-[550px] bg-white rounded-2xl md:rounded-xl px-6 md:px-8 py-10 md:py-12 flex flex-col gap-6 md:gap-8 shadow-2xl">
                     <div className="flex flex-col gap-1">
-                        <p className="text-gray-600 text-[15px] font-medium">
+                        <p className="text-gray-600 text-[14px] md:text-[15px] font-medium">
                             Welcome to <span className="text-[#0380f5]">BEFIN</span>
                         </p>
-                        <h2 className="text-[3rem] text-gray-900 tracking-tight leading-none mt-1">Sign in</h2>
+                        <h2 className="text-4xl md:text-[3rem] text-gray-900 tracking-tight leading-none mt-1">Sign in</h2>
                     </div>
 
                     <form className="flex flex-col gap-6" onSubmit={handleSubmit}>

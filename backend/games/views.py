@@ -86,19 +86,20 @@ class GameAwardView(APIView):
         with transaction.atomic():
             wallet, _ = Wallet.objects.select_for_update().get_or_create(user=request.user)
             
-            if coins_to_award >= 0:
-                wallet.balance += abs_amount
-            else:
-                wallet.balance -= abs_amount
-            
-            wallet.save()
+            if abs_amount > 0:
+                if coins_to_award > 0:
+                    wallet.balance += abs_amount
+                else:
+                    wallet.balance -= abs_amount
+                
+                wallet.save()
 
-            Transaction.objects.create(
-                wallet=wallet,
-                amount=abs_amount,
-                transaction_type=transaction_type,
-                description=description
-            )
+                Transaction.objects.create(
+                    wallet=wallet,
+                    amount=abs_amount,
+                    transaction_type=transaction_type,
+                    description=description
+                )
 
             Leaderboard.objects.create(
                 user=request.user,
@@ -107,7 +108,7 @@ class GameAwardView(APIView):
             )
 
         return Response({
-            'success': 'Coins awarded successfully!',
+            'success': 'Wallet updated!',
             'coins_awarded': coins_to_award,
             'source': game.name,
             'new_balance': wallet.balance

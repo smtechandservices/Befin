@@ -13,7 +13,7 @@ import {
     Home, Wallet, Search, Bell, CircleHelp, TrendingUp, TrendingDown,
     Smartphone, Landmark, CreditCard,
     Send, Plus, LineChart, Coins, Gamepad2,
-    ArrowUpRight, ArrowDownLeft, ChevronRight, Eye, EyeOff
+    ArrowUpRight, ArrowDownLeft, ChevronRight, Eye, EyeOff, Menu
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -29,6 +29,7 @@ export default function Dashboard() {
     const [generatingCode, setGeneratingCode] = useState(false);
     const [showReferral, setShowReferral] = useState(false);
     const [games, setGames] = useState<any[]>([]);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
 
     const QUOTES = [
@@ -99,28 +100,37 @@ export default function Dashboard() {
     }
 
     return (
-        <div className="flex h-screen bg-[#0a0a0b] font-sans text-white overflow-hidden">
+        <div className="flex h-screen bg-[#0a0a0b] font-sans text-white overflow-hidden relative">
             {/* Left Sidebar */}
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col h-full overflow-hidden">
                 {/* Local Header */}
-                <header className="px-10 py-8 shrink-0">
-                    <h1 className="text-[2.5rem] font-black tracking-tight text-white leading-tight">
-                        Dashboard
-                    </h1>
-                    <p className="text-slate-400 font-semibold text-sm tracking-wide opacity-80 uppercase italic">
-                        Welcome back to your financial hub
-                    </p>
+                <header className="px-6 md:px-10 py-6 md:py-8 shrink-0 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl md:text-[2.5rem] font-black tracking-tight text-white leading-tight">
+                            Dashboard
+                        </h1>
+                        <p className="text-slate-400 font-semibold text-[10px] md:text-sm tracking-wide opacity-80 uppercase italic">
+                            Welcome back
+                        </p>
+                    </div>
+                    {/* Mobile Toggle */}
+                    <button
+                        onClick={() => setIsSidebarOpen(true)}
+                        className="md:hidden p-2 text-white bg-white/5 rounded-xl border border-white/10"
+                    >
+                        <Menu size={24} />
+                    </button>
                 </header>
 
                 {/* Scrollable Grid Container */}
-                <div className="flex-1 overflow-y-auto px-10 pb-10">
-                    <div className="flex flex-col lg:flex-row gap-8 mb-8">
+                <div className="flex-1 overflow-y-auto px-6 md:px-10 pb-10">
+                    <div className="flex flex-col xl:flex-row gap-8 mb-8">
 
-                        {/* 70% Left Content Grid */}
-                        <div className="flex-[2.5] flex flex-col gap-6">
+                        {/* Left Content Grid */}
+                        <div className="flex-1 xl:flex-[2.5] flex flex-col gap-6">
 
                             {/* Row: Quote & Pills */}
                             <div className="flex flex-col md:flex-row items-center gap-6">
@@ -128,7 +138,7 @@ export default function Dashboard() {
                                 <FinanceNews />
 
                                 {/* Interactive Pills */}
-                                <div className="flex flex-col gap-3 min-w-[200px]">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 md:flex md:flex-col gap-3 min-w-[200px] w-full md:w-auto">
                                     <Link href="/wallet" className="bg-[#18181c] rounded-xl flex items-center justify-between py-6 px-4 border border-white/5 hover:border-white/10 transition-colors">
                                         <span className="font-semibold text-white">Offers</span>
                                         <span className="w-6 h-6 rounded-full bg-[#FFCA28] text-black flex items-center justify-center text-xs font-bold">{discounts.length}</span>
@@ -136,13 +146,13 @@ export default function Dashboard() {
                                     <div className="bg-[#18181c] rounded-xl flex items-center justify-between py-6 px-4 border border-white/5 hover:border-white/10 transition-colors">
                                         <span className="font-semibold text-white">Redeemed</span>
                                         <span className="w-6 h-6 rounded-full bg-[#EF5350] text-white flex items-center justify-center text-xs font-bold">
-                                            {discounts.filter(d => d.is_redeemed).length}
+                                            {transactions.filter(tx => !['reward', 'deposit'].includes(tx.transaction_type.toLowerCase())).length}
                                         </span>
                                     </div>
                                     <div className="bg-[#18181c] rounded-xl flex items-center justify-between p-6 px-4 border border-white/5 hover:border-white/10 transition-colors">
                                         <span className="font-semibold text-white">Rewards</span>
                                         <span className="w-6 h-6 rounded-full bg-[#29B6F6] text-white flex items-center justify-center text-xs font-bold">
-                                            {transactions.filter(tx => ['reward', 'REWARD'].includes(tx.transaction_type)).length}
+                                            {transactions.filter(tx => ['reward', 'deposit'].includes(tx.transaction_type.toLowerCase())).length}
                                         </span>
                                     </div>
                                 </div>
@@ -162,7 +172,7 @@ export default function Dashboard() {
                                             <div className="text-2xl font-bold text-white tracking-tight">
                                                 {(() => {
                                                     const income = transactions
-                                                        .filter(tx => ['reward', 'deposit', 'REWARD', 'DEPOSIT'].includes(tx.transaction_type))
+                                                        .filter(tx => ['reward', 'deposit'].includes(tx.transaction_type.toLowerCase()))
                                                         .reduce((sum, tx) => sum + parseFloat(tx.amount), 0);
                                                     return income.toLocaleString();
                                                 })()} BeFin Coins
@@ -176,7 +186,7 @@ export default function Dashboard() {
                                             <div className="text-2xl font-bold text-white tracking-tight">
                                                 {(() => {
                                                     const expenses = transactions
-                                                        .filter(tx => !['reward', 'deposit', 'REWARD', 'DEPOSIT'].includes(tx.transaction_type))
+                                                        .filter(tx => !['reward', 'deposit'].includes(tx.transaction_type.toLowerCase()))
                                                         .reduce((sum, tx) => sum + parseFloat(tx.amount), 0);
                                                     return expenses.toLocaleString();
                                                 })()} BeFin Coins
@@ -242,10 +252,10 @@ export default function Dashboard() {
                             </div>
                         </div>
 
-                        {/* 30% Right Sidebar: Recent Transactions */}
-                        <div className="flex-[1] flex flex-col">
+                        {/* Right Sidebar: Recent Transactions */}
+                        <div className="flex-1 xl:flex-[1] flex flex-col">
                             <div className="bg-[#18181c] border border-white/5 rounded-3xl p-6 flex flex-col h-[520px] overflow-y-auto no-scrollbar">
-                                <h3 className="text-xl font-bold text-white mb-4 px-1">Recent Transactions</h3>
+                                <h3 className="text-xl font-bold text-white mb-4">Recent Transactions</h3>
                                 <hr className="border-white/10 py-1 px-4" />
                                 {transactions.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center flex-1 py-12 text-slate-500 gap-3">
@@ -255,8 +265,8 @@ export default function Dashboard() {
                                 ) : (
                                     <>
                                         {transactions.map((tx: any, idx: number) => {
-                                            const isDeposit = ['reward', 'deposit', 'REWARD', 'DEPOSIT'].includes(tx.transaction_type);
-                                            const isReward = ['reward', 'REWARD'].includes(tx.transaction_type);
+                                            const isDeposit = ['reward', 'deposit'].includes(tx.transaction_type.toLowerCase());
+                                            const isReward = tx.transaction_type.toLowerCase() === 'reward';
                                             return (
                                                 <div key={tx.id} className="flex items-center justify-between py-4 transition-all group border-b border-white/5 last:border-0 border-solid relative">
                                                     <div className="flex items-center gap-4">

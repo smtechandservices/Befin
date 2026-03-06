@@ -41,23 +41,53 @@
 .azm-body .game-container {
   width: 100%;
   max-width: 1400px;
-  height: 90vh;
+  min-height: 90vh;
   margin: 0 auto;
   padding: 1rem;
   display: grid;
-  grid-template-columns: 350px 1fr;
+  grid-template-columns: 320px 1fr;
   gap: 1.5rem;
   position: relative;
   perspective: 2000px;
+}
+
+@media (max-width: 1024px) {
+  .azm-body .game-container {
+    grid-template-columns: 1fr;
+    height: auto;
+    gap: 1rem;
+  }
 }
 
 /* Sidebar Styling */
 .azm-body .game-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   height: 100%;
-  padding-bottom: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .azm-body .game-sidebar {
+    order: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .azm-body .profile-card {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .azm-body .game-sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .azm-body .profile-card {
+    grid-column: span 1;
+  }
 }
 
 .azm-body .sidebar-card {
@@ -227,12 +257,19 @@
   -webkit-backdrop-filter: blur(40px);
   border: 1px solid var(--panel-border);
   border-radius: 32px;
-  padding: 2.5rem;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
   box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 640px) {
+  .azm-body .main-content-card {
+    padding: 1.5rem;
+    border-radius: 24px;
+  }
 }
 
 .azm-body .main-content-card::after {
@@ -250,7 +287,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .azm-body .game-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .azm-body .progress-section {
+    width: 100%;
+  }
 }
 
 .azm-body .timer-display {
@@ -317,7 +366,13 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 3rem;
+  gap: 2rem;
+}
+
+@media (max-width: 640px) {
+  .azm-body .game-canvas {
+    gap: 1.5rem;
+  }
 }
 
 .azm-body .letter-ring-container {
@@ -330,20 +385,28 @@
 }
 
 .azm-body .letter-ring {
-  width: 180px;
-  height: 180px;
+  width: 140px;
+  height: 140px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
   border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 8rem;
+  font-size: 6rem;
   font-weight: 900;
   color: #fff;
   text-shadow: 0 0 30px rgba(0, 136, 255, 0.5);
   z-index: 2;
   animation: floatRing 4s infinite ease-in-out;
+}
+
+@media (min-width: 768px) {
+  .azm-body .letter-ring {
+    width: 180px;
+    height: 180px;
+    font-size: 8rem;
+  }
 }
 
 .azm-body .ring-glow {
@@ -405,13 +468,21 @@
   background: rgba(0, 0, 0, 0.5);
   border: 2px solid var(--panel-border);
   border-radius: 20px;
-  padding: 1.5rem 2rem;
+  padding: 1rem 1.5rem;
   color: #fff;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 600;
   transition: all 0.3s ease;
   text-align: left;
   margin-bottom: 0;
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .azm-body input {
+    padding: 1.5rem 2rem;
+    font-size: 1.5rem;
+  }
 }
 
 .azm-body input:focus {
@@ -637,9 +708,9 @@
 
 .azm-body .age-selector {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  margin: 3rem 0;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
 }
 
 .azm-body .age-option {
@@ -728,8 +799,15 @@
 
 .azm-body .activity-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
+  grid-template-columns: 1fr;
+  gap: 0.8rem;
+}
+
+@media (min-width: 768px) {
+  .azm-body .activity-list {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
 }
 
 .azm-body .activity-item {
@@ -774,9 +852,17 @@
   backdrop-filter: blur(40px);
   border: 1px solid var(--panel-border);
   border-radius: 40px;
-  padding: 4rem;
+  padding: 2rem;
   text-align: center;
   box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+  max-width: 600px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .azm-body .victory-card {
+    padding: 4rem;
+  }
 }
 
 .azm-body .victory-card.failure {
@@ -808,9 +894,17 @@
 
 .azm-body .victory-stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin: 3rem 0;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+@media (min-width: 640px) {
+  .azm-body .victory-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 3rem 0;
+  }
 }
 
 .azm-body .v-stat {
@@ -835,9 +929,15 @@
 }
 
 .azm-body .v-stat .value {
-  font-size: 3rem;
+  font-size: 2rem;
   font-weight: 900;
   color: #fff;
+}
+
+@media (min-width: 640px) {
+  .azm-body .v-stat .value {
+    font-size: 3rem;
+  }
 }
 
 .azm-body .sync-indicator {
@@ -856,8 +956,15 @@
 
 .azm-body .victory-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .azm-body .victory-actions {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
 }
 
 .azm-body .elite-btn.primary {

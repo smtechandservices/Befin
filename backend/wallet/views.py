@@ -171,13 +171,14 @@ class RedeemDiscountView(APIView):
             )
 
             # Create transaction record
-            from .models import Transaction
-            Transaction.objects.create(
-                wallet=wallet,
-                amount=discount.coin_cost,
-                transaction_type='purchase',
-                description=f'Redeemed: {discount.brand_name}'
-            )
+            if discount.coin_cost > 0:
+                from .models import Transaction
+                Transaction.objects.create(
+                    wallet=wallet,
+                    amount=discount.coin_cost,
+                    transaction_type='purchase',
+                    description=f'Redeemed: {discount.brand_name}'
+                )
 
         return Response({
             'success': 'Discount redeemed successfully!',
