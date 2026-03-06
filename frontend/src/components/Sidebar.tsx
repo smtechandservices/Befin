@@ -48,7 +48,7 @@ export default function Sidebar() {
             </div>
 
             <div className="p-4 mb-4">
-                <hr className='text-white/15' />
+                <hr className='text-white/15 my-2' />
                 <button onClick={handleLogout} className="flex items-center gap-4 w-full px-4 py-3.5 rounded-2xl font-medium text-red-400 hover:bg-red-400/10 transition-all">
                     <LogOut className="w-5 h-5" />
                     Logout

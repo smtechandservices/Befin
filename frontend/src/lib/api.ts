@@ -43,6 +43,11 @@ export const authService = {
         return response.data;
     },
 
+    changePassword: async (data: any) => {
+        const response = await api.put('/users/change-password/', data);
+        return response.data;
+    },
+
 
     getReferralCode: async () => {
         const response = await api.get('/users/referral-code/');

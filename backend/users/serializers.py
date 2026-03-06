@@ -81,3 +81,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             )
 
         return user
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)

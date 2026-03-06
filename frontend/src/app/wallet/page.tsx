@@ -591,12 +591,15 @@ export default function WalletPage() {
                                             />
 
                                             {/* Suggestions Dropdown */}
-                                            {showSuggestions && userSuggestions.length > 0 && (
+                                            {showSuggestions && userSuggestions.filter(s => s !== transferIdentifier).length > 0 && (
                                                 <div className="absolute z-10 w-full mt-2 bg-[#1a1a24] border border-white/10 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                                                    {userSuggestions.map((suggestion, index) => (
+                                                    {userSuggestions.filter(s => s !== transferIdentifier).map((suggestion, index) => (
                                                         <div
                                                             key={index}
-                                                            onClick={() => handleSuggestionClick(suggestion)}
+                                                            onMouseDown={(e) => {
+                                                                e.preventDefault();
+                                                                handleSuggestionClick(suggestion);
+                                                            }}
                                                             className="px-4 py-3 hover:bg-blue-600/20 hover:text-blue-400 cursor-pointer transition-colors flex items-center gap-3 border-b border-white/5 last:border-b-0 text-slate-300 font-medium"
                                                         >
                                                             <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">

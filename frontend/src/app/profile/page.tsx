@@ -7,7 +7,7 @@ import { authService, walletService } from '@/lib/api';
 import LoadingScreen from '@/components/LoadingScreen';
 import {
     User, Mail, Phone, Calendar, Edit3, Check, X,
-    ShieldCheck, Coins, ArrowDownLeft, ArrowUpRight, Copy, Eye, EyeOff
+    ShieldCheck, Coins, ArrowDownLeft, ArrowUpRight, Copy, Eye, EyeOff, Lock
 } from 'lucide-react';
 
 export default function ProfilePage() {
@@ -32,6 +32,22 @@ export default function ProfilePage() {
     });
 
     const [copiedReferral, setCopiedReferral] = useState(false);
+
+    // Password mode
+    const [changingPassword, setChangingPassword] = useState(false);
+    const [passwordSaving, setPasswordSaving] = useState(false);
+    const [passwordError, setPasswordError] = useState('');
+    const [passwordSuccess, setPasswordSuccess] = useState(false);
+    const [passwordForm, setPasswordForm] = useState({
+        old_password: '',
+        new_password: '',
+        confirm_password: '',
+    });
+
+    // Toggle password visibility
+    const [showOldPassword, setShowOldPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -87,6 +103,44 @@ export default function ProfilePage() {
         });
         setSaveError('');
         setEditing(false);
+    };
+
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setPasswordError('');
+        setPasswordSuccess(false);
+
+        if (passwordForm.new_password !== passwordForm.confirm_password) {
+            setPasswordError('New passwords do not match.');
+            return;
+        }
+
+        if (passwordForm.new_password.length < 8) {
+            setPasswordError('Password must be at least 8 characters long.');
+            return;
+        }
+
+        setPasswordSaving(true);
+        try {
+            await authService.changePassword({
+                old_password: passwordForm.old_password,
+                new_password: passwordForm.new_password
+            });
+            setPasswordSuccess(true);
+            setPasswordForm({ old_password: '', new_password: '', confirm_password: '' });
+            setTimeout(() => {
+                setPasswordSuccess(false);
+                setChangingPassword(false);
+            }, 3000);
+        } catch (e: any) {
+            if (e.response?.data?.old_password) {
+                setPasswordError(e.response.data.old_password[0]);
+            } else {
+                setPasswordError(e.response?.data ? Object.values(e.response.data).flat().join(' ') : 'Failed to change password.');
+            }
+        } finally {
+            setPasswordSaving(false);
+        }
     };
 
     const copyReferral = () => {
@@ -148,16 +202,16 @@ export default function ProfilePage() {
 
                             {/* Avatar card */}
                             <div className="bg-[#111111] rounded-[2rem] p-7 border border-white/5 flex flex-col items-center gap-4">
+                                <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full">
+                                    <ShieldCheck className="w-4 h-4 text-green-400" />
+                                    <span className="text-xs font-bold text-green-400 uppercase tracking-wider">Verified Account</span>
+                                </div>
                                 <div className="text-center">
-                                    <p className="text-2xl font-black text-white my-2">{displayName}</p>
+                                    <p className="text-2xl font-black text-white mb-2">{displayName}</p>
                                     <p className="text-sm text-slate-500 font-semibold mt-0.5">@{user?.username}</p>
                                     {age !== null && (
                                         <p className="text-xs text-slate-600 font-bold mt-2">{age} years old</p>
                                     )}
-                                </div>
-                                <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full">
-                                    <ShieldCheck className="w-4 h-4 text-green-400" />
-                                    <span className="text-xs font-bold text-green-400 uppercase tracking-wider">Verified Account</span>
                                 </div>
                                 <p className="text-[11px] text-slate-600 font-semibold">
                                     Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : '—'}
@@ -290,6 +344,128 @@ export default function ProfilePage() {
                                         {saveError}
                                     </div>
                                 )}
+
+                                {/* Password Change Section */}
+                                <div className="border-t border-white/5 pt-4 px-2">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="text-md font-bold text-white flex items-center gap-2">
+                                                <Lock className="w-4 h-4 text-slate-400" /> Security
+                                            </h3>
+                                        </div>
+                                        {!changingPassword && (
+                                            <button
+                                                onClick={() => setChangingPassword(true)}
+                                                className="px-4 py-2 text-xs font-bold text-slate-300 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl transition-all"
+                                            >
+                                                Change Password
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {passwordSuccess && (
+                                        <div className="p-4 mb-4 bg-green-500/10 border border-green-500/20 rounded-2xl text-green-400 text-sm font-bold flex items-center gap-2 mt-2">
+                                            <Check className="w-4 h-4" /> Password changed successfully!
+                                        </div>
+                                    )}
+
+                                    {passwordError && (
+                                        <div className="p-4 mb-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-sm font-bold mt-2">
+                                            {passwordError}
+                                        </div>
+                                    )}
+
+                                    {changingPassword && (
+                                        <form onSubmit={handleChangePassword} className="bg-[#181818] p-5 rounded-2xl border border-white/5 flex flex-col gap-4 mt-4">
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Current Password</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type={showOldPassword ? "text" : "password"}
+                                                        value={passwordForm.old_password}
+                                                        onChange={e => setPasswordForm(f => ({ ...f, old_password: e.target.value }))}
+                                                        required
+                                                        className="w-full bg-[#111111] border border-white/10 rounded-xl py-3 px-4 pr-10 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all font-semibold text-sm"
+                                                        placeholder="Enter current password"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowOldPassword(!showOldPassword)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors p-1"
+                                                    >
+                                                        {showOldPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">New Password</label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type={showNewPassword ? "text" : "password"}
+                                                            value={passwordForm.new_password}
+                                                            onChange={e => setPasswordForm(f => ({ ...f, new_password: e.target.value }))}
+                                                            required
+                                                            className="w-full bg-[#111111] border border-white/10 rounded-xl py-3 px-4 pr-10 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all font-semibold text-sm"
+                                                            placeholder="New password"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors p-1"
+                                                        >
+                                                            {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col gap-1.5">
+                                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Confirm Password</label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type={showConfirmPassword ? "text" : "password"}
+                                                            value={passwordForm.confirm_password}
+                                                            onChange={e => setPasswordForm(f => ({ ...f, confirm_password: e.target.value }))}
+                                                            required
+                                                            className="w-full bg-[#111111] border border-white/10 rounded-xl py-3 px-4 pr-10 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all font-semibold text-sm"
+                                                            placeholder="Confirm new password"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors p-1"
+                                                        >
+                                                            {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-end gap-2 mt-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setChangingPassword(false);
+                                                        setPasswordError('');
+                                                        setPasswordForm({ old_password: '', new_password: '', confirm_password: '' });
+                                                    }}
+                                                    className="px-4 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    type="submit"
+                                                    disabled={passwordSaving}
+                                                    className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50"
+                                                >
+                                                    {passwordSaving ? (
+                                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    ) : (
+                                                        'Update Password'
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    )}
+                                </div>
 
                                 {/* Username + Email (read-only) */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
