@@ -10,6 +10,9 @@ def generate_card_number():
 def generate_cvv():
     return ''.join([str(random.randint(0, 9)) for _ in range(3)])
 
+def generate_expiry():
+    expiry = datetime.now() + timedelta(days=365*3)  
+    return expiry.strftime("%m/%y")
 
 class Wallet(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wallet')
