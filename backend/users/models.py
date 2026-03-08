@@ -13,3 +13,12 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+class ReferralCode(models.Model):
+    code = models.CharField(max_length=12, unique=True)
+    referrer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='generated_codes')
+    is_used = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.code} (by {self.referrer.username})"

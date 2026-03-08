@@ -40,13 +40,6 @@ class Transaction(models.Model):
     def __str__(self):
         return f"{self.transaction_type} of {self.amount} for {self.wallet.user.username}"
 
-class Portfolio(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='portfolio')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.user.username}'s Portfolio"
-
 class VirtualCard(models.Model):
     wallet = models.OneToOneField(Wallet, on_delete=models.CASCADE, related_name='card')
     card_number = models.CharField(max_length=19, default=generate_card_number)
@@ -56,63 +49,6 @@ class VirtualCard(models.Model):
     def __str__(self):
         return f"Virtual Card for {self.wallet.user.username}"
 
-class Order(models.Model):
-    ORDER_TYPES = [('MARKET', 'Market'), ('LIMIT', 'Limit')]
-    SIDES = [('BUY', 'Buy'), ('SELL', 'Sell')]
-    STATUS_CHOICES = [
-        ('PENDING', 'Pending'),
-        ('EXECUTED', 'Executed'),
-        ('CANCELLED', 'Cancelled'),
-        ('FAILED', 'Failed')
-    ]
-    
-    portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='orders')
-    symbol = models.CharField(max_length=20)
-    order_type = models.CharField(max_length=10, choices=ORDER_TYPES, default='MARKET')
-    side = models.CharField(max_length=10, choices=SIDES)
-    quantity = models.DecimalField(max_digits=15, decimal_places=4)
-    price = models.DecimalField(max_digits=15, decimal_places=2)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.side} {self.quantity} {self.symbol} @ {self.price}"
-
-class Position(models.Model):
-    portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='positions')
-    symbol = models.CharField(max_length=20)
-    quantity = models.DecimalField(max_digits=15, decimal_places=4, default=0)
-    average_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ('portfolio', 'symbol')
-
-    def __str__(self):
-        return f"{self.symbol}: {self.quantity} items"
-
-class Goal(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='goals')
-    title = models.CharField(max_length=100)
-    target_amount = models.DecimalField(max_digits=12, decimal_places=2)
-    current_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.0)
-    deadline = models.DateField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.title} - {self.current_amount}/{self.target_amount}"
-
-class Leaderboard(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='leaderboard_entries')
-    game_name = models.CharField(max_length=100)
-    score = models.IntegerField(default=0)
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-score']
-
-    def __str__(self):
-        return f"{self.user.username} - {self.game_name}: {self.score}"
 
 class Discount(models.Model):
     brand_name = models.CharField(max_length=100)
@@ -127,3 +63,12 @@ class Discount(models.Model):
 
     def __str__(self):
         return f"{self.brand_name} - {self.percentage}% off"
+
+class RedeemedDiscount(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='redeemed_discounts')
+    discount = models.ForeignKey(Discount, on_delete=models.CASCADE)
+    redeemed_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username} redeemed {self.discount.brand_name}"

@@ -11,8 +11,9 @@ import {
     Search, Bell, CircleHelp, ArrowUpRight, ArrowDownLeft,
     Plus, Send, CreditCard, Download, ExternalLink, RefreshCw,
     Eye, EyeOff, Smartphone, Landmark, ShieldCheck, ChevronRight,
-    QrCode, Settings, Clock, MoreVertical, X
+    QrCode, Settings, Clock, MoreVertical, X, Menu
 } from 'lucide-react';
+import LoadingScreen from '@/components/LoadingScreen';
 
 export default function WalletPage() {
     const [user, setUser] = useState<any>(null);
@@ -32,6 +33,50 @@ export default function WalletPage() {
     const [userSuggestions, setUserSuggestions] = useState<string[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
+    const [copiedId, setCopiedId] = useState<number | null>(null);
+    const [redeemModalOpen, setRedeemModalOpen] = useState(false);
+    const [selectedDiscount, setSelectedDiscount] = useState<any>(null);
+    const [redeemLoading, setRedeemLoading] = useState(false);
+    const [redeemError, setRedeemError] = useState('');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [flippedId, setFlippedId] = useState<number | null>(null);
+
+    const copyCode = (id: number, code: string) => {
+        if (!code) return;
+        navigator.clipboard.writeText(code);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
+
+    const handleRedeem = async () => {
+        if (!selectedDiscount) return;
+        setRedeemLoading(true);
+        setRedeemError('');
+
+        try {
+            const response = await walletService.redeemDiscount(selectedDiscount.id);
+            setRedeemModalOpen(false);
+
+            // Refresh wallet balance, discounts list, and recent transactions to reflect the redemption
+            const [walletData, discountsData, txData] = await Promise.all([
+                walletService.getBalance(),
+                walletService.getDiscounts(),
+                walletService.getTransactions()
+            ]);
+            if (walletData) setWallet(walletData);
+            setDiscounts(Array.isArray(discountsData) ? discountsData : []);
+            setTransactions(Array.isArray(txData) ? txData : []);
+
+            // Automatically copy to clipboard if the code is returned
+            if (response.code) {
+                copyCode(selectedDiscount.id, response.code);
+            }
+        } catch (error: any) {
+            setRedeemError(error.response?.data?.error || 'Failed to redeem discount');
+        } finally {
+            setRedeemLoading(false);
+        }
+    };
 
     // Fetch suggestions when identifier changes
     useEffect(() => {
@@ -98,27 +143,28 @@ export default function WalletPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [userData, walletData, transactionsData, discountsData] = await Promise.all([
+                const [profileData, walletData, txData, discountsData] = await Promise.all([
                     authService.getProfile(),
                     walletService.getBalance(),
                     walletService.getTransactions(),
-                    walletService.getDiscounts()
+                    walletService.getDiscounts(),
+                    new Promise(resolve => setTimeout(resolve, 500))
                 ]);
 
-                console.log("User Data:", userData);
+                console.log("User Data:", profileData);
                 console.log("Wallet Data:", walletData);
-                console.log("Transactions Data:", transactionsData);
+                console.log("Transactions Data:", txData);
                 console.log("Discounts Data:", discountsData);
 
-                setUser(userData);
+                setUser(profileData);
                 if (walletData) {
                     console.log("Setting Wallet Status:", !!walletData);
                     setWallet(walletData);
                 }
 
-                if (Array.isArray(transactionsData)) {
-                    console.log("Setting Transactions Count:", transactionsData.length);
-                    setTransactions(transactionsData);
+                if (Array.isArray(txData)) {
+                    console.log("Setting Transactions Count:", txData.length);
+                    setTransactions(txData);
                 } else if (walletData && Array.isArray(walletData.transactions)) {
                     console.log("Setting Transactions from Wallet Data:", walletData.transactions.length);
                     setTransactions(walletData.transactions);
@@ -136,85 +182,197 @@ export default function WalletPage() {
     }, []);
 
     if (loading) {
-        return (
-            <div className="flex h-screen bg-[#0a0a0b] items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-        );
+        return <LoadingScreen />;
     }
 
     const balanceValue = wallet?.balance !== undefined ? parseFloat(wallet.balance) : null;
 
     return (
-        <div className="flex min-h-screen bg-[#0a0a0b] text-slate-200 selection:bg-blue-500/30">
-            <Sidebar />
+        <div className="flex h-screen bg-[#0a0a0b] text-slate-200 overflow-hidden selection:bg-blue-500/30">
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-            <main className="flex-1 p-4 lg:p-8">
-                <div className="max-w-[1600px] mx-auto flex flex-col gap-8">
-
-                    {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                            <h1 className="text-3xl font-black text-white tracking-tight">My Wallet</h1>
-                            <p className="text-slate-500 font-medium mt-1">Manage your digital assets and rewards</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <button className="p-3 bg-[#111] rounded-2xl border border-white/5 hover:bg-[#16161c] transition-colors relative">
-                                <Bell className="w-5 h-5 text-slate-400" />
-                                <span className="absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full border-2 border-[#111]"></span>
-                            </button>
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 border-2 border-white/10"></div>
-                        </div>
+            <main className="flex-1 flex flex-col h-full overflow-hidden">
+                {/* Local Header */}
+                <header className="px-6 md:px-8 lg:px-10 py-6 md:py-8 shrink-0 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl md:text-[2.5rem] font-black tracking-tight text-white leading-tight">My Wallet</h1>
+                        <p className="text-slate-400 font-semibold text-[10px] md:text-sm tracking-wide opacity-80 uppercase italic">Your financial assets</p>
                     </div>
+                    {/* Mobile Toggle */}
+                    <button
+                        onClick={() => setIsSidebarOpen(true)}
+                        className="md:hidden p-2 text-white bg-white/5 rounded-xl border border-white/10"
+                    >
+                        <Menu size={24} />
+                    </button>
+                </header>
 
-                    {/* Main Content Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="flex-1 overflow-y-auto px-6 md:px-8 lg:px-10 pb-10">
+                    <div className="max-w-[1600px] mx-auto flex flex-col gap-8">
 
-                        {/* LEFT COLUMN: Balance, Transfers, Discounts */}
-                        <div className="lg:col-span-4 flex flex-col gap-6">
+                        {/* Main Content Grid */}
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6">
 
-                            {/* Wallet Balance */}
-                            <div className="bg-[#111111] rounded-[2.5rem] p-7 border border-white/5 flex flex-col gap-6">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="text-slate-300 font-bold text-sm uppercase tracking-widest">Wallet Balance</h3>
+                            {/* LEFT COLUMN: Balance, Transfers, Discounts */}
+                            <div className="lg:col-span-12 xl:col-span-4 flex flex-col gap-6 order-2 xl:order-1">
+
+                                {/* Wallet Balance */}
+                                <div className="bg-[#111111] rounded-[2.5rem] p-7 border border-white/5 flex flex-col gap-6">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-slate-300 font-bold text-sm uppercase tracking-widest">Wallet Balance</h3>
+                                    </div>
+                                    <div className="text-4xl font-black text-white tracking-tight flex items-baseline gap-2">
+                                        {balanceValue !== null ? balanceValue.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '---'} <span className="text-slate-500 font-bold text-[1.5rem]">BFC</span>
+                                    </div>
                                 </div>
-                                <div className="text-4xl font-black text-white tracking-tight flex items-baseline gap-2">
-                                    {balanceValue !== null ? balanceValue.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '---'} <span className="text-slate-500 font-bold text-[1.5rem]">BFC</span>
-                                </div>
-                            </div>
 
-                            {/* Money Transfers */}
-                            <div className="bg-[#111111] rounded-[2.5rem] p-7 border border-white/5 flex flex-col gap-6">
-                                <h3 className="text-slate-300 font-bold text-sm uppercase tracking-widest">Money Transfers</h3>
-                                <div className="grid grid-cols-3 gap-3">
-                                    <button onClick={() => {
-                                        setShowTransferModal(true);
-                                        setShowConfirmation(false);
-                                    }} className="group flex flex-col items-center gap-3 p-4 rounded-2xl bg-[#181818] border border-white/5 hover:bg-blue-600/10 hover:border-blue-500/30 transition-all">
-                                        <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-all text-blue-500">
-                                            <Send className="w-6 h-6" />
-                                        </div>
-                                        <span className="text-[10px] font-bold text-slate-500 group-hover:text-white transition-colors text-center">Transfer Money</span>
-                                    </button>
+                                {/* Money Transfers */}
+                                <div className="bg-[#111111] rounded-[2.5rem] p-7 border border-white/5 flex flex-col gap-6">
+                                    <h3 className="text-slate-300 font-bold text-sm uppercase tracking-widest">Money Transfers</h3>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button onClick={() => {
+                                            setShowTransferModal(true);
+                                            setShowConfirmation(false);
+                                        }} className="cursor-pointer group flex flex-col items-center gap-3 p-4 rounded-xl bg-[#181818] border border-white/5 hover:bg-blue-600/10 hover:border-blue-500/30 transition-all">
+                                            <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-all text-blue-500">
+                                                <Send className="w-6 h-6" />
+                                            </div>
+                                            <span className="text-[10px] font-bold text-slate-500 group-hover:text-white transition-colors text-center">Transfer to User</span>
+                                        </button>
+                                        <button className="cursor-not-allowed group flex flex-col items-center gap-3 p-4 rounded-xl bg-[#181818] border border-white/5">
+                                            <div className="w-12 h-12 bg-slate-500/10 rounded-xl flex items-center justify-center">
+                                                <Send className="w-6 h-6" />
+                                            </div>
+                                            <span className="text-[10px] font-bold text-slate-500 group-hover:text-white transition-colors text-center">Coming Sooon</span>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Discounts (Upcoming Bill slot) */}
-                            <div className="bg-[#111111] rounded-[2.5rem] p-7 border border-white/5 flex flex-col gap-6">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="text-slate-300 font-bold text-base tracking-tight">Discounts</h3>
-                                    <button className="cursor-pointer text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1">
-                                        View All <ChevronRight className="w-3 h-3" />
-                                    </button>
-                                </div>
-                                <div className="flex flex-col gap-4 pr-1">
-                                    {discounts.slice(0, 2).map((discount: any) => (
-                                        <div key={discount.id} className="group p-4 bg-[#181818] rounded-2xl border border-white/5 hover:border-white/10 transition-all">
-                                            <div className="flex justify-between items-center">
+                                {/* Payment Settings */}
+                                <div className="flex flex-col gap-4">
+                                    <h3 className="text-slate-300 font-bold text-base tracking-tight pl-2">Payment Settings</h3>
+                                    <div className="flex flex-col gap-3">
+                                        <div className="relative group overflow-hidden rounded-2xl border border-white/5">
+                                            <div className="flex items-center justify-between p-4 bg-[#111] transition-colors group-hover:bg-[#16161c] cursor-pointer">
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center font-black overflow-hidden ${discount.brand_name === 'Amazon' ? 'bg-white text-black' :
-                                                        discount.brand_name === 'Starbucks' ? 'bg-[#00704A] text-white' :
-                                                            'bg-[#E23744] text-white'
+                                                    <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
+                                                        <Smartphone className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-white">UPI IDs</p>
+                                                        <p className="text-[10px] text-slate-500 font-medium tracking-tight">View all your UPI IDs</p>
+                                                    </div>
+                                                </div>
+                                                <MoreVertical className="w-4 h-4 text-slate-500" />
+                                            </div>
+                                            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full shadow-lg shadow-blue-500/10">Coming Soon</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="relative group overflow-hidden rounded-2xl border border-white/5">
+                                            <div className="flex items-center justify-between p-4 bg-[#111] transition-colors group-hover:bg-[#16161c] cursor-pointer">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
+                                                        <QrCode className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-white">QR Codes</p>
+                                                        <p className="text-[10px] text-slate-500 font-medium tracking-tight">View your QR Code</p>
+                                                    </div>
+                                                </div>
+                                                <MoreVertical className="w-4 h-4 text-slate-500" />
+                                            </div>
+                                            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full shadow-lg shadow-blue-500/10">Coming Soon</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="relative group overflow-hidden rounded-2xl border border-white/5">
+                                            <div className="flex items-center justify-between p-4 bg-[#111] transition-colors group-hover:bg-[#16161c] cursor-pointer">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
+                                                        <Settings className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-white">Autopay Settings</p>
+                                                        <p className="text-[10px] text-slate-500 font-medium tracking-tight">Manage Autopay</p>
+                                                    </div>
+                                                </div>
+                                                <MoreVertical className="w-4 h-4 text-slate-500" />
+                                            </div>
+                                            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full shadow-lg shadow-blue-500/10">Coming Soon</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* MIDDLE COLUMN: Card and Settings */}
+                            <div className="lg:col-span-12 xl:col-span-4 flex flex-col gap-6 order-1 xl:order-2">
+
+                                {/* Card Section */}
+                                <div className="flex flex-col gap-4">
+                                    <h3 className="text-slate-300 font-bold text-sm uppercase tracking-widest pl-2">My Befin Card</h3>
+                                    <div className="relative bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-8 overflow-hidden group shadow-2xl">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-xl blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                                        <div className="relative h-full flex flex-col justify-between">
+                                            <div className="flex flex-col">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div className="w-12 h-12">
+                                                        <Image src="/images/logo.png" alt="BeFin" width={28} height={28} />
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setShowCardNumber(!showCardNumber)}
+                                                        className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm"
+                                                    >
+                                                        {showCardNumber ? <EyeOff className="w-4 h-4 text-white" /> : <Eye className="w-4 h-4 text-white" />}
+                                                    </button>
+                                                </div>
+
+                                                <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mb-2">Debit Card</p>
+                                                <div className="flex flex-col gap-1">
+                                                    <p className="text-xl font-bold text-white tracking-[0.15em] font-mono whitespace-nowrap">
+                                                        {wallet?.card?.card_number ? (
+                                                            showCardNumber
+                                                                ? wallet.card.card_number.match(/.{1,4}/g)?.join(' ')
+                                                                : `XXXX XXXX XXXX ${wallet.card.card_number.slice(-4)}`
+                                                        ) : 'XXXX XXXX XXXX XXXX'}
+                                                    </p>
+                                                    <div className="flex gap-6 mt-4">
+                                                        <div>
+                                                            <p className="text-[8px] text-white/40 font-bold uppercase tracking-widest">CVV</p>
+                                                            <p className="text-xs font-bold text-white font-mono">{showCardNumber ? wallet?.card?.cvv : '***'}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex justify-between items-end">
+                                                <div className="flex flex-col gap-1">
+                                                    <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Card Holder</p>
+                                                    <p className="text-sm font-bold text-white">{user?.username || 'BEFIN USER'}</p>
+                                                </div>
+                                                <div className="flex -space-x-3">
+                                                    <div className="w-10 h-10 rounded-full bg-red-500/80 border border-white/10"></div>
+                                                    <div className="w-10 h-10 rounded-full bg-yellow-500/80 border border-white/10"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Discounts */}
+                                <div className="bg-[#111111] rounded-xl p-7 border border-white/5 flex flex-col items-stretch xl:mb-12">
+                                    <h3 className="text-slate-300 font-bold text-base tracking-tight mb-6 shrink-0">Discounts</h3>
+                                    <div className="flex flex-col gap-4 pr-1 max-h-[300px] overflow-y-auto no-scrollbar">
+                                        {discounts.map((discount: any) => (
+                                            <div key={discount.id}
+                                                onClick={() => setFlippedId(flippedId === discount.id ? null : discount.id)}
+                                                className={`relative px-4 py-4 rounded-[1.25rem] border border-white/5 hover:border-white/10 transition-all overflow-hidden shrink-0 flex justify-between items-center h-20 cursor-pointer ${discount.is_redeemed ? 'bg-yellow-500/15' : 'bg-[#181818]'}`}>
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`relative w-12 h-12 rounded-xl hidden md:flex items-center justify-center font-black overflow-hidden shadow-md 'bg-[#E23744] text-white'
                                                         }`}>
                                                         {discount.image_url ? (
                                                             <Image src={discount.image_url} alt={discount.brand_name} fill className="object-cover" />
@@ -223,8 +381,8 @@ export default function WalletPage() {
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-bold text-white">{discount.brand_name}</p>
-                                                        <div className="flex items-center gap-1 mt-0.5">
+                                                        <p className="text-sm font-bold text-white leading-tight">{discount.brand_name}</p>
+                                                        <div className="flex items-center gap-1 mt-1">
                                                             <div className="w-3 h-3 rounded-full bg-yellow-500/20 flex items-center justify-center">
                                                                 <div className="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
                                                             </div>
@@ -232,176 +390,155 @@ export default function WalletPage() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="bg-[#222] px-3 py-1.5 rounded-lg text-xs font-bold text-white">
-                                                    {discount.percentage}% Off
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
 
-                        {/* MIDDLE COLUMN: Card and Settings */}
-                        <div className="lg:col-span-4 flex flex-col gap-6">
+                                                <div className="relative w-32 h-10 overflow-hidden rounded-xl shrink-0">
+                                                    {/* Default State: Percentage Off */}
+                                                    <div className={`absolute inset-0 flex items-center justify-end pr-2 transition-transform duration-300 ${flippedId === discount.id ? '-translate-y-full' : 'translate-y-0'}`}>
+                                                        <div className="px-3 py-1.5 rounded-lg text-sm font-bold text-white bg-white/5 border border-white/10 whitespace-nowrap">
+                                                            {discount.percentage}% Off
+                                                        </div>
+                                                    </div>
 
-                            {/* Card Section */}
-                            <div className="flex flex-col gap-4">
-                                <h3 className="text-slate-300 font-bold text-sm uppercase tracking-widest pl-2">My Befin Card</h3>
-                                <div className="relative bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2.5rem] p-8 overflow-hidden group shadow-2xl">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-                                    <div className="relative h-full flex flex-col justify-between">
-                                        <div className="flex flex-col">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div className="w-12 h-12">
-                                                    <Image src="/images/logo.png" alt="BeFin" width={28} height={28} />
-                                                </div>
-                                                <button
-                                                    onClick={() => setShowCardNumber(!showCardNumber)}
-                                                    className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm"
-                                                >
-                                                    {showCardNumber ? <EyeOff className="w-4 h-4 text-white" /> : <Eye className="w-4 h-4 text-white" />}
-                                                </button>
-                                            </div>
-
-                                            <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mb-2">Debit Card</p>
-                                            <div className="flex flex-col gap-1">
-                                                <p className="text-xl font-bold text-white tracking-[0.15em] font-mono whitespace-nowrap">
-                                                    {wallet?.card?.card_number ? (
-                                                        showCardNumber
-                                                            ? wallet.card.card_number.match(/.{1,4}/g)?.join(' ')
-                                                            : `XXXX XXXX XXXX ${wallet.card.card_number.slice(-4)}`
-                                                    ) : 'XXXX XXXX XXXX XXXX'}
-                                                </p>
-                                                <div className="flex gap-6 mt-4">
-                                                    <div>
-                                                        <p className="text-[8px] text-white/40 font-bold uppercase tracking-widest">CVV</p>
-                                                        <p className="text-xs font-bold text-white font-mono">{showCardNumber ? wallet?.card?.cvv : '***'}</p>
+                                                    {/* Flipped State: Action Button */}
+                                                    <div className={`absolute inset-0 flex items-center justify-end transition-transform duration-300 ${flippedId === discount.id ? 'translate-y-0' : 'translate-y-full'}`}>
+                                                        {discount.is_redeemed ? (
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); copyCode(discount.id, discount.code); }}
+                                                                className="cursor-pointer h-9 px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-colors w-full flex items-center justify-center"
+                                                            >
+                                                                {copiedId === discount.id ? <span className="text-green-400">Copied!</span> : 'Copy Code'}
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); setSelectedDiscount(discount); setRedeemModalOpen(true); }}
+                                                                className="cursor-pointer h-9 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-colors shadow-lg shadow-blue-500/20 w-full flex items-center justify-center"
+                                                            >
+                                                                Redeem
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <div className="flex justify-between items-end">
-                                            <div className="flex flex-col gap-1">
-                                                <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Card Holder</p>
-                                                <p className="text-sm font-bold text-white">{user?.username || 'BEFIN USER'}</p>
-                                            </div>
-                                            <div className="flex -space-x-3">
-                                                <div className="w-10 h-10 rounded-full bg-red-500/80 border border-white/10"></div>
-                                                <div className="w-10 h-10 rounded-full bg-yellow-500/80 border border-white/10"></div>
-                                            </div>
-                                        </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Payment Settings */}
-                            <div className="flex flex-col gap-4">
-                                <h3 className="text-slate-300 font-bold text-base tracking-tight pl-2">Payment Settings</h3>
-                                <div className="flex flex-col gap-3">
-                                    <div className="flex items-center justify-between p-4 bg-[#111] rounded-2xl border border-white/5 hover:bg-[#16161c] transition-colors group cursor-pointer">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
-                                                <Smartphone className="w-5 h-5" />
+                            {/* RIGHT COLUMN: Recent Transactions */}
+                            <div className="lg:col-span-12 xl:col-span-4 flex flex-col gap-6 order-3">
+                                <div className="bg-[#111111] rounded-[2.5rem] p-7 border border-white/5 flex flex-col h-auto xl:h-full no-scrollbar xl:mb-12">
+                                    <h3 className="text-slate-200 font-black text-xl tracking-tight mb-6">Recent Transactions</h3>
+                                    <hr className="border-white/10 py-1 px-4" />
+                                    <div className="flex flex-col gap-2 h-[600px] overflow-y-auto no-scrollbar">
+                                        {transactions.length === 0 ? (
+                                            <div className="p-8 text-center text-slate-500 font-medium italic">
+                                                No recent activity.
                                             </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-white">UPI IDs</p>
-                                                <p className="text-[10px] text-slate-500 font-medium tracking-tight">View all your UPI IDs</p>
-                                            </div>
-                                        </div>
-                                        <MoreVertical className="w-4 h-4 text-slate-500" />
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-4 bg-[#111] rounded-2xl border border-white/5 hover:bg-[#16161c] transition-colors group cursor-pointer">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
-                                                <QrCode className="w-5 h-5" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-white">QR Codes</p>
-                                                <p className="text-[10px] text-slate-500 font-medium tracking-tight">View your QR Code</p>
-                                            </div>
-                                        </div>
-                                        <MoreVertical className="w-4 h-4 text-slate-500" />
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-4 bg-[#111] rounded-2xl border border-white/5 hover:bg-[#16161c] transition-colors group cursor-pointer">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
-                                                <Settings className="w-5 h-5" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-white">Autopay Settings</p>
-                                                <p className="text-[10px] text-slate-500 font-medium tracking-tight">Manage Autopay</p>
-                                            </div>
-                                        </div>
-                                        <MoreVertical className="w-4 h-4 text-slate-500" />
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-4 bg-[#111] rounded-2xl border border-white/5 hover:bg-[#16161c] transition-colors group cursor-pointer">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
-                                                <Clock className="w-5 h-5" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-white">Reminders</p>
-                                                <p className="text-[10px] text-slate-500 font-medium tracking-tight">Never miss bill dues</p>
-                                            </div>
-                                        </div>
-                                        <MoreVertical className="w-4 h-4 text-slate-500" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* RIGHT COLUMN: Recent Transactions */}
-                        <div className="lg:col-span-4 flex flex-col gap-6">
-                            <div className="bg-[#111111] rounded-[2.5rem] p-7 border border-white/5 flex flex-col h-full min-h-[600px]">
-                                <h3 className="text-slate-200 font-black text-xl tracking-tight mb-6">Recent Transactions</h3>
-                                <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar">
-                                    {transactions.length === 0 ? (
-                                        <div className="p-8 text-center text-slate-500 font-medium italic">
-                                            No recent activity.
-                                        </div>
-                                    ) : (
-                                        transactions.map((tx: any) => {
-                                            const isDeposit = ['reward', 'deposit', 'REWARD', 'DEPOSIT'].includes(tx.transaction_type);
-                                            return (
-                                                <div key={tx.id} className="flex items-center justify-between px-2 py-4 rounded-[1.5rem] hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/5">
-                                                    <div className="flex items-center gap-5">
-                                                        <div className={`rounded-2xl flex items-center justify-center text-xl ${isDeposit ? 'text-blue-400' : 'text-slate-400'
-                                                            }`}>
-                                                            {isDeposit ? <ArrowDownLeft className="w-7 h-7" /> : <ArrowUpRight className="w-7 h-7" />}
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-bold text-white text-base">{tx.description || 'Global Payment'}</p>
-                                                            <div className="flex items-center gap-2 mt-0.5">
-                                                                <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">
-                                                                    {new Date(tx.timestamp).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                                </p>
-                                                                <span className="text-slate-700">•</span>
-                                                                <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">
-                                                                    {new Date(tx.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
-                                                                </p>
+                                        ) : (
+                                            transactions.map((tx: any) => {
+                                                const isDeposit = ['reward', 'deposit', 'REWARD', 'DEPOSIT'].includes(tx.transaction_type);
+                                                return (
+                                                    <div key={tx.id} className="flex items-center justify-between py-4">
+                                                        <div className="flex items-center gap-5">
+                                                            <div className={`rounded-2xl flex items-center justify-center text-xl ${isDeposit ? 'text-blue-400' : 'text-red-400'
+                                                                }`}>
+                                                                {isDeposit ? <ArrowDownLeft className="w-7 h-7" /> : <ArrowUpRight className="w-7 h-7" />}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-white text-base">{tx.description || 'Global Payment'}</p>
+                                                                <div className="flex items-center gap-2 mt-0.5">
+                                                                    <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">
+                                                                        {new Date(tx.timestamp).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                                    </p>
+                                                                    <span className="text-slate-700">•</span>
+                                                                    <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">
+                                                                        {new Date(tx.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                                                                    </p>
+                                                                </div>
                                                             </div>
                                                         </div>
+                                                        <p className={`text-nowrap text-lg font-black tracking-tight ${isDeposit ? 'text-blue-400' : 'text-red-400'}`}>
+                                                            {isDeposit ? '+' : '-'} {parseFloat(tx.amount).toLocaleString()}
+                                                        </p>
                                                     </div>
-                                                    <p className={`text-lg font-black tracking-tight flex items-baseline gap-1 ${isDeposit ? 'text-blue-400' : 'text-white'}`}>
-                                                        {isDeposit ? '+' : '-'} {parseFloat(tx.amount).toLocaleString()}
-                                                        <span className="text-xs font-bold opacity-80">Coins</span>
-                                                    </p>
-                                                </div>
-                                            );
-                                        })
-                                    )}
+                                                );
+                                            })
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
+                        </div>
                     </div>
                 </div>
             </main>
+
+            {/* Redeem Discount Modal */}
+            {redeemModalOpen && selectedDiscount && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="bg-[#111111] rounded-[2rem] border border-white/10 w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center p-6 border-b border-white/5">
+                            <h2 className="text-xl font-black text-white">Redeem Discount</h2>
+                            <button
+                                onClick={() => { setRedeemModalOpen(false); setRedeemError(''); }}
+                                className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6 flex flex-col gap-6">
+                            {redeemError && (
+                                <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-center justify-center">
+                                    <p className="text-red-400 font-bold text-sm text-center">{redeemError}</p>
+                                </div>
+                            )}
+                            <div className="flex flex-col items-center text-center gap-4">
+                                <div className={`relative w-20 h-20 rounded-2xl flex items-center justify-center font-black overflow-hidden shadow-xl ${selectedDiscount.brand_name === 'Amazon' ? 'bg-white text-black' : selectedDiscount.brand_name === 'Starbucks' ? 'bg-[#00704A] text-white' : 'bg-[#E23744] text-white'}`}>
+                                    {selectedDiscount.image_url ? (
+                                        <Image src={selectedDiscount.image_url} alt={selectedDiscount.brand_name} fill className="object-cover" />
+                                    ) : (
+                                        <span className="text-4xl">{selectedDiscount.brand_name[0]}</span>
+                                    )}
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-black text-white">{selectedDiscount.percentage}% off {selectedDiscount.brand_name}</h3>
+                                    <p className="text-slate-400 text-sm mt-2 leading-relaxed">{selectedDiscount.description}</p>
+                                </div>
+                                <div className="w-full h-[1px] bg-white/5 my-2"></div>
+                                <div className="flex justify-between items-center w-full px-4">
+                                    <span className="text-slate-400 font-bold uppercase tracking-wider text-xs">Total Cost</span>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-4 h-4 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                                            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                                        </div>
+                                        <span className="text-xl font-black text-white">{parseFloat(selectedDiscount.coin_cost).toLocaleString()} Coins</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 border-t border-white/5 bg-[#181818] flex gap-4">
+                            <button
+                                onClick={() => { setRedeemModalOpen(false); setRedeemError(''); }}
+                                className="flex-1 py-4 font-bold rounded-xl text-slate-400 bg-white/5 hover:bg-white/10 hover:text-white transition-colors"
+                                disabled={redeemLoading}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleRedeem}
+                                disabled={redeemLoading}
+                                className="flex-1 py-4 font-black rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {redeemLoading ? (
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                ) : (
+                                    'Confirm Redeem'
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Transfer Modal */}
             {showTransferModal && (
@@ -459,17 +596,20 @@ export default function WalletPage() {
                                                     setTimeout(() => setShowSuggestions(false), 200);
                                                 }}
                                                 required
-                                                placeholder="e.g. johndoe or 1234567812345678"
+                                                placeholder="Enter Username"
                                                 className="w-full bg-[#181818] border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium"
                                             />
 
                                             {/* Suggestions Dropdown */}
-                                            {showSuggestions && userSuggestions.length > 0 && (
+                                            {showSuggestions && userSuggestions.filter(s => s !== transferIdentifier).length > 0 && (
                                                 <div className="absolute z-10 w-full mt-2 bg-[#1a1a24] border border-white/10 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                                                    {userSuggestions.map((suggestion, index) => (
+                                                    {userSuggestions.filter(s => s !== transferIdentifier).map((suggestion, index) => (
                                                         <div
                                                             key={index}
-                                                            onClick={() => handleSuggestionClick(suggestion)}
+                                                            onMouseDown={(e) => {
+                                                                e.preventDefault();
+                                                                handleSuggestionClick(suggestion);
+                                                            }}
                                                             className="px-4 py-3 hover:bg-blue-600/20 hover:text-blue-400 cursor-pointer transition-colors flex items-center gap-3 border-b border-white/5 last:border-b-0 text-slate-300 font-medium"
                                                         >
                                                             <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
@@ -500,7 +640,7 @@ export default function WalletPage() {
                                                 onChange={(e) => setTransferAmount(e.target.value)}
                                                 required
                                                 min="1"
-                                                step="0.01"
+                                                step="1"
                                                 placeholder="0.00"
                                                 className="w-full bg-[#181818] border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-bold text-lg"
                                             />
