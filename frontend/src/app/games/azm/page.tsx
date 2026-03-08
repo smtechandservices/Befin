@@ -5,56 +5,73 @@ import confetti from 'canvas-confetti';
 import { useRouter } from 'next/navigation';
 import { authService, walletService, gamesService } from '@/lib/api';
 import { FINANCE_KEYWORDS } from './keywords';
-import { FINANCE_TERMS } from './constants';
+import { FINANCE_TERMS as FINANCE_TERMS_RAW } from './constants';
+const FINANCE_TERMS = FINANCE_TERMS_RAW as Record<string, string[]>;
 import './index.css';
 
 const ALL_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const QUESTIONS_COUNT = 10;
 
-// Age preferences: Kid (30s, simple), Teen (20s, medium), Adult (15s, hard)
-const AGE_CONFIG = {
+type AgePref = 'KID' | 'TEEN' | 'ADULT';
+
+const AGE_CONFIG: Record<AgePref, { timer: number; label: string; desc: string }> = {
   KID: { timer: 20, label: "Junior Explorer", desc: "For youngsters learning about money!" },
   TEEN: { timer: 20, label: "Finance Trainee", desc: "For teens building wealth habits." },
-  ADULT: { timer: 20, label: "Wall Street Pro", desc: "The ultimate challenge for experts!" }
+  ADULT: { timer: 20, label: "Wall Street Pro", desc: "The ultimate challenge for experts!" },
 };
 
 const SUCCESS_GIFS = [
-  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHY2MGJleXhsZzlyMmdqNTVqNTVqNTVqNTVqNTVqNTVqNTVqNTVqJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/uyWTOgNGfWpG/giphy.gif", // Rich kid
-  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHY2MGJleXhsZzlyMmdqNTVqNTVqNTVqNTVqNTVqNTVqNTVqNTVqJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/67ThRZlYBvibLh4bAF/giphy.gif", // Money rain
-  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHY2MGJleXhsZzlyMmdqNTVqNTVqNTVqNTVqNTVqNTVqNTVqNTVqJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/lptjRBx24DfcaatibC/giphy.gif"  // Scrooge McDuck
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHY2MGJleXhsZzlyMmdqNTVqNTVqNTVqNTVqNTVqNTVqNTVqNTVqJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/uyWTOgNGfWpG/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHY2MGJleXhsZzlyMmdqNTVqNTVqNTVqNTVqNTVqNTVqNTVqNTVqJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/67ThRZlYBvibLh4bAF/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHY2MGJleXhsZzlyMmdqNTVqNTVqNTVqNTVqNTVqNTVqNTVqNTVqJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/lptjRBx24DfcaatibC/giphy.gif",
 ];
 
 const FAILURE_GIFS = [
-  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHY2MGJleXhsZzlyMmdqNTVqNTVqNTVqNTVqNTVqNTVqNTVqNTVqJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/PyoyQRPuoZbeE/giphy.gif", // Empty wallet
-  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHY2MGJleXhsZzlyMmdqNTVqNTVqNTVqNTVqNTVqNTVqNTVqNTVqJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7TKVUn7iM8FMEU24/giphy.gif", // Sad bank
-  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHY2MGJleXhsZzlyMmdqNTVqNTVqNTVqNTVqNTVqNTVqNTVqNTVqJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/ZGH8VtTZMmnwzsYYMf/giphy.gif" // No money
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHY2MGJleXhsZzlyMmdqNTVqNTVqNTVqNTVqNTVqNTVqNTVqNTVqJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/PyoyQRPuoZbeE/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHY2MGJleXhsZzlyMmdqNTVqNTVqNTVqNTVqNTVqNTVqNTVqNTVqJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7TKVUn7iM8FMEU24/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHY2MGJleXhsZzlyMmdqNTVqNTVqNTVqNTVqNTVqNTVqNTVqNTVqJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/ZGH8VtTZMmnwzsYYMf/giphy.gif",
 ];
+
+interface LeaderboardEntry {
+  username: string;
+  score: number;
+}
+
+interface Transaction {
+  timestamp: string;
+  description: string;
+  amount: string | number;
+}
+
+interface Feedback {
+  message: string;
+  type: string;
+  gif: string;
+}
 
 function App() {
   const router = useRouter();
-  const [gameState, setGameState] = useState('WELCOME');
-  const [username, setUsername] = useState("");
-  const [agePref, setAgePref] = useState('TEEN');
-  const [shuffledLetters, setShuffledLetters] = useState([]);
-  const [currentLetterIndex, setCurrentLetterIndex] = useState(0);
-  const [inputValue, setInputValue] = useState("");
-  const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [feedback, setFeedback] = useState({ message: "", type: "", gif: "" });
-  const [hint, setHint] = useState("");
-  const [hintUsed, setHintUsed] = useState(false);
-  const [lifelines, setLifelines] = useState({ hint: true });
-  const [walletBalance, setWalletBalance] = useState(0);
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [recentTransactions, setRecentTransactions] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const inputRef = useRef(null);
-  const timerRef = useRef(null);
+  const [gameState, setGameState] = useState<string>('WELCOME');
+  const [username, setUsername] = useState<string>('');
+  const [agePref, setAgePref] = useState<AgePref>('TEEN');
+  const [shuffledLetters, setShuffledLetters] = useState<string[]>([]);
+  const [currentLetterIndex, setCurrentLetterIndex] = useState<number>(0);
+  const [inputValue, setInputValue] = useState<string>('');
+  const [score, setScore] = useState<number>(0);
+  const [timeLeft, setTimeLeft] = useState<number>(30);
+  const [feedback, setFeedback] = useState<Feedback>({ message: '', type: '', gif: '' });
+  const [hint, setHint] = useState<string>('');
+  const [hintUsed, setHintUsed] = useState<boolean>(false);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const currentLetter = shuffledLetters[currentLetterIndex] || "";
+  const currentLetter = shuffledLetters[currentLetterIndex] ?? '';
 
   useEffect(() => {
-    // Fetch User Profile and Game Data
     const initData = async () => {
       try {
         const profile = await authService.getProfile();
@@ -64,17 +81,17 @@ function App() {
         setWalletBalance(balanceData.balance);
 
         const games = await gamesService.getGames();
-        const azmGame = games.find(g => g.slug === 'azm');
+        const azmGame = games.find((g: { slug: string }) => g.slug === 'azm');
         if (azmGame) {
           const [lb, tx] = await Promise.all([
             gamesService.getLeaderboard('azm'),
-            gamesService.getGameTransactions('azm')
+            gamesService.getGameTransactions('azm'),
           ]);
           setLeaderboard(lb);
           setRecentTransactions(tx);
         }
       } catch (err) {
-        console.error("Initialization error:", err);
+        console.error('Initialization error:', err);
         router.push('/login');
       }
     };
@@ -98,15 +115,18 @@ function App() {
         });
       }, 1000);
     }
-    return () => clearInterval(timerRef.current);
+    return () => {
+      if (timerRef.current !== null) clearInterval(timerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, currentLetterIndex]);
 
   const handleTimeOut = () => {
-    clearInterval(timerRef.current);
+    if (timerRef.current !== null) clearInterval(timerRef.current);
     setFeedback({
-      message: "TIME EXPIRED! Analysis Terminated. ⏱️",
-      type: "error",
-      gif: FAILURE_GIFS[Math.floor(Math.random() * FAILURE_GIFS.length)]
+      message: 'TIME EXPIRED! Analysis Terminated. ⏱️',
+      type: 'error',
+      gif: FAILURE_GIFS[Math.floor(Math.random() * FAILURE_GIFS.length)],
     });
     setTimeout(nextChallenge, 2000);
   };
@@ -115,9 +135,9 @@ function App() {
     if (currentLetterIndex < shuffledLetters.length - 1) {
       setCurrentLetterIndex(prev => prev + 1);
       setTimeLeft(AGE_CONFIG[agePref].timer);
-      setInputValue("");
-      setFeedback({ message: "", type: "", gif: "" });
-      setHint("");
+      setInputValue('');
+      setFeedback({ message: '', type: '', gif: '' });
+      setHint('');
       setHintUsed(false);
     } else {
       finishGame();
@@ -126,24 +146,20 @@ function App() {
 
   const finishGame = async () => {
     setGameState('WIN');
-    if (score >= 0) {
-      triggerCoins();
-    }
+    if (score >= 0) triggerCoins();
     setIsLoading(true);
 
     try {
       const response = await walletService.awardCoins(
         'azm',
         Math.min(Math.floor(score / 10), 100),
-        score
+        score,
       );
       if (response && response.success) {
-        console.log('Successfully synced BeCoins!');
-        // Refetch leaderboard and transactions to show updated stats
         const [lb, tx, balanceData] = await Promise.all([
           gamesService.getLeaderboard('azm'),
           gamesService.getGameTransactions('azm'),
-          walletService.getBalance()
+          walletService.getBalance(),
         ]);
         setLeaderboard(lb);
         setRecentTransactions(tx);
@@ -163,7 +179,7 @@ function App() {
       particleCount: 80,
       spread: 70,
       origin: { y: 0.6 },
-      colors: ['#fccb0b', '#ffd700', '#00ff88']
+      colors: ['#fccb0b', '#ffd700', '#00ff88'],
     });
   };
 
@@ -171,11 +187,13 @@ function App() {
     if (hint || isLoading) return;
     setIsLoading(true);
 
-    // Find keywords for current letter
-    const validKeywords = FINANCE_KEYWORDS.filter(k => k.term.toUpperCase().startsWith(currentLetter.toUpperCase()));
-    const randomKeyword = validKeywords.length > 0
-      ? validKeywords[Math.floor(Math.random() * validKeywords.length)]
-      : null;
+    const validKeywords = FINANCE_KEYWORDS.filter((k: { term: string; hint: string }) =>
+      k.term.toUpperCase().startsWith(currentLetter.toUpperCase()),
+    );
+    const randomKeyword =
+      validKeywords.length > 0
+        ? validKeywords[Math.floor(Math.random() * validKeywords.length)]
+        : null;
 
     if (randomKeyword) {
       setHint(`HINT: ${randomKeyword.hint}`);
@@ -187,34 +205,33 @@ function App() {
     setIsLoading(false);
   };
 
-
-  const checkIsFinanceTerm = async (word) => {
+  const checkIsFinanceTerm = async (word: string): Promise<boolean> => {
     const term = word.toUpperCase();
     const firstLetter = term[0];
 
-    // 1. Check our manual A-Z dictionary (Highest priority)
-    if (FINANCE_TERMS[firstLetter] && FINANCE_TERMS[firstLetter].some(t => t.toUpperCase() === term)) {
+    if (
+      FINANCE_TERMS[firstLetter] &&
+      FINANCE_TERMS[firstLetter].some((t: string) => t.toUpperCase() === term)
+    ) {
       return true;
     }
 
-    // 2. Check the existing keywords list
-    if (FINANCE_KEYWORDS.some(k => k.term.toUpperCase() === term)) {
+    if (FINANCE_KEYWORDS.some((k: { term: string }) => k.term.toUpperCase() === term)) {
       return true;
     }
 
-    // 3. Fallback to external dictionary check
     try {
       const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
       if (!response.ok) return false;
       const data = await response.json();
       const fullText = JSON.stringify(data).toLowerCase();
-      return FINANCE_KEYWORDS.some(k => fullText.includes(k.term.toLowerCase()));
-    } catch (error) {
+      return FINANCE_KEYWORDS.some((k: { term: string }) => fullText.includes(k.term.toLowerCase()));
+    } catch {
       return false;
     }
   };
 
-  const startGame = (e) => {
+  const startGame = (e: React.FormEvent) => {
     e.preventDefault();
     if (username.trim()) {
       setTimeLeft(AGE_CONFIG[agePref].timer);
@@ -222,44 +239,35 @@ function App() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
 
     const term = inputValue.trim();
     setIsLoading(true);
-    clearInterval(timerRef.current);
+    if (timerRef.current !== null) clearInterval(timerRef.current);
 
-    // 1. Check if empty
     if (!term) {
       setFeedback({
-        message: "No input detected! Skipping... ⏭️",
-        type: "error",
-        gif: FAILURE_GIFS[Math.floor(Math.random() * FAILURE_GIFS.length)]
+        message: 'No input detected! Skipping... ⏭️',
+        type: 'error',
+        gif: FAILURE_GIFS[Math.floor(Math.random() * FAILURE_GIFS.length)],
       });
-      setTimeout(() => {
-        setIsLoading(false);
-        nextChallenge();
-      }, 2000);
+      setTimeout(() => { setIsLoading(false); nextChallenge(); }, 2000);
       return;
     }
 
-    // 2. Check if starts with correct letter
     if (term[0].toUpperCase() !== shuffledLetters[currentLetterIndex]) {
       setScore(prev => prev - 30);
       setFeedback({
         message: `Oops! Must start with ${shuffledLetters[currentLetterIndex]}! -30 Points ❌`,
-        type: "error",
-        gif: FAILURE_GIFS[Math.floor(Math.random() * FAILURE_GIFS.length)]
+        type: 'error',
+        gif: FAILURE_GIFS[Math.floor(Math.random() * FAILURE_GIFS.length)],
       });
-      setTimeout(() => {
-        setIsLoading(false);
-        nextChallenge();
-      }, 2000);
+      setTimeout(() => { setIsLoading(false); nextChallenge(); }, 2000);
       return;
     }
 
-    // 3. Deep validation
     const isValid = await checkIsFinanceTerm(term);
 
     if (isValid) {
@@ -267,22 +275,19 @@ function App() {
       setScore(prev => prev + points);
       setFeedback({
         message: `${hintUsed ? 'GOOD!' : 'STUNNING!'} +${points} Points 💎`,
-        type: "success",
-        gif: SUCCESS_GIFS[Math.floor(Math.random() * SUCCESS_GIFS.length)]
+        type: 'success',
+        gif: SUCCESS_GIFS[Math.floor(Math.random() * SUCCESS_GIFS.length)],
       });
     } else {
       setScore(prev => prev - 50);
       setFeedback({
-        message: "Invalid Finance Term! -50 Points ❌",
-        type: "error",
-        gif: FAILURE_GIFS[Math.floor(Math.random() * FAILURE_GIFS.length)]
+        message: 'Invalid Finance Term! -50 Points ❌',
+        type: 'error',
+        gif: FAILURE_GIFS[Math.floor(Math.random() * FAILURE_GIFS.length)],
       });
     }
 
-    setTimeout(() => {
-      setIsLoading(false);
-      nextChallenge();
-    }, 2000);
+    setTimeout(() => { setIsLoading(false); nextChallenge(); }, 2000);
   };
 
   if (gameState === 'WELCOME') {
@@ -317,13 +322,17 @@ function App() {
                 <span className="title">Global Rankings</span>
               </div>
               <div className="stats-list">
-                {leaderboard.length > 0 ? leaderboard.map((entry, i) => (
-                  <div key={i} className="stats-item">
-                    <span className="rank">#{i + 1}</span>
-                    <span className="name">{entry.username}</span>
-                    <span className={`${entry.score >= 0 ? 'text-green-500' : 'text-red-500'}`}>{entry.score > 0 ? `+${entry.score}` : entry.score}</span>
-                  </div>
-                )) : <div className="empty-msg">No entries yet</div>}
+                {leaderboard.length > 0
+                  ? leaderboard.map((entry, i) => (
+                    <div key={i} className="stats-item">
+                      <span className="rank">#{i + 1}</span>
+                      <span className="name">{entry.username}</span>
+                      <span className={entry.score >= 0 ? 'text-green-500' : 'text-red-500'}>
+                        {entry.score > 0 ? `+${entry.score}` : entry.score}
+                      </span>
+                    </div>
+                  ))
+                  : <div className="empty-msg">No entries yet</div>}
               </div>
             </div>
           </aside>
@@ -335,7 +344,7 @@ function App() {
                 <p className="subtitle slide-up">Master the language of global finance and build your digital empire.</p>
 
                 <div className="age-selector slide-up">
-                  {Object.keys(AGE_CONFIG).map((pref) => (
+                  {(Object.keys(AGE_CONFIG) as AgePref[]).map((pref) => (
                     <div
                       key={pref}
                       className={`age-option ${agePref === pref ? 'active' : ''}`}
@@ -351,10 +360,7 @@ function App() {
                   <form onSubmit={startGame}>
                     <button type="submit" className="start-btn">INITIALIZE CORE MISSION</button>
                   </form>
-                  <button
-                    className="exit-btn"
-                    onClick={() => router.push('/learning')}
-                  >
+                  <button className="exit-btn" onClick={() => router.push('/learning')}>
                     BACK TO HUB
                   </button>
                 </div>
@@ -372,7 +378,7 @@ function App() {
                     </div>
                     <div className="guide-step">
                       <div className="step-num">03</div>
-                      <p>Use <strong>Insights</strong> if you're stuck on a complex term.</p>
+                      <p>Use <strong>Insights</strong> if you&apos;re stuck on a complex term.</p>
                     </div>
                     <div className="guide-step">
                       <div className="step-num">04</div>
@@ -385,13 +391,15 @@ function App() {
               <div className="recent-activity">
                 <h3>📜 Recent Performance</h3>
                 <div className="activity-list">
-                  {recentTransactions.length > 0 ? recentTransactions.map((tx, i) => (
-                    <div key={i} className="activity-item">
-                      <span className="date">{new Date(tx.timestamp).toLocaleDateString()}</span>
-                      <span className="desc">{tx.description}</span>
-                      <span className="amount">+{tx.amount} BFC</span>
-                    </div>
-                  )) : <div className="empty-msg">No recent missions recorded</div>}
+                  {recentTransactions.length > 0
+                    ? recentTransactions.map((tx, i) => (
+                      <div key={i} className="activity-item">
+                        <span className="date">{new Date(tx.timestamp).toLocaleDateString()}</span>
+                        <span className="desc">{tx.description}</span>
+                        <span className="amount">+{tx.amount} BFC</span>
+                      </div>
+                    ))
+                    : <div className="empty-msg">No recent missions recorded</div>}
                 </div>
               </div>
             </div>
@@ -431,19 +439,16 @@ function App() {
               </div>
 
               <div className="sync-indicator">
-                {isLoading ? (
-                  <div className="sync-status">Updating BeFin Treasury... 🔄</div>
-                ) : (
-                  <div className="sync-status success">Treasury Sync Complete ✅</div>
-                )}
+                {isLoading
+                  ? <div className="sync-status">Updating BeFin Treasury... 🔄</div>
+                  : <div className="sync-status success">Treasury Sync Complete ✅</div>}
               </div>
 
               <div className="victory-actions">
-                <button className="elite-btn primary" onClick={() => window.location.reload()}>RE-ENGAGE MISSION</button>
-                <button
-                  className="elite-btn secondary"
-                  onClick={() => router.push('/dashboard')}
-                >
+                <button className="elite-btn primary" onClick={() => window.location.reload()}>
+                  RE-ENGAGE MISSION
+                </button>
+                <button className="elite-btn secondary" onClick={() => router.push('/dashboard')}>
                   RETURN TO BASE
                 </button>
               </div>
@@ -453,7 +458,6 @@ function App() {
       </div>
     );
   }
-
 
   return (
     <div className="azm-body">
@@ -498,13 +502,17 @@ function App() {
               <span className="title">Top Elite</span>
             </div>
             <div className="stats-list">
-              {leaderboard.length > 0 ? leaderboard.map((entry, i) => (
-                <div key={i} className="stats-item">
-                  <span className="rank">#{i + 1}</span>
-                  <span className="name">{entry.username}</span>
-                  <span className={`score ${entry.score >= 0 ? 'text-green-500' : 'text-red-500'}`}>{entry.score > 0 ? `+${entry.score}` : entry.score}</span>
-                </div>
-              )) : <div className="empty-msg">No entries yet</div>}
+              {leaderboard.length > 0
+                ? leaderboard.map((entry, i) => (
+                  <div key={i} className="stats-item">
+                    <span className="rank">#{i + 1}</span>
+                    <span className="name">{entry.username}</span>
+                    <span className={`score ${entry.score >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {entry.score > 0 ? `+${entry.score}` : entry.score}
+                    </span>
+                  </div>
+                ))
+                : <div className="empty-msg">No entries yet</div>}
             </div>
           </div>
         </aside>
@@ -521,7 +529,10 @@ function App() {
               <div className="progress-section">
                 <div className="progress-text">Level {currentLetterIndex + 1} of {QUESTIONS_COUNT}</div>
                 <div className="progress-track">
-                  <div className="progress-bar-elite" style={{ width: `${((currentLetterIndex + 1) / QUESTIONS_COUNT) * 100}%` }}></div>
+                  <div
+                    className="progress-bar-elite"
+                    style={{ width: `${((currentLetterIndex + 1) / QUESTIONS_COUNT) * 100}%` }}
+                  />
                 </div>
               </div>
             </div>
@@ -529,12 +540,16 @@ function App() {
             <div className="game-canvas">
               <div className="letter-ring-container">
                 <div className="letter-ring">{currentLetter}</div>
-                <div className="ring-glow"></div>
+                <div className="ring-glow" />
               </div>
 
               <div className="action-center">
                 <div className="hint-section">
-                  <button className="lifeline-btn" onClick={getHint} disabled={hint || isLoading}>
+                  <button
+                    className="lifeline-btn"
+                    onClick={getHint}
+                    disabled={!!hint || isLoading}
+                  >
                     💡 Get Insight
                   </button>
                   {hint && <div className="hint-box fade-in">{hint}</div>}
@@ -545,21 +560,26 @@ function App() {
                     <input
                       ref={inputRef}
                       type="text"
-                      placeholder={isLoading ? "Analyzing..." : `Enter ${currentLetter} Finance Term`}
+                      placeholder={isLoading ? 'Analyzing...' : `Enter ${currentLetter} Finance Term`}
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       disabled={isLoading}
                       autoFocus
                     />
                     <button className="confirm-btn" disabled={isLoading}>
-                      {isLoading ? "..." : "CONFIRM"}
+                      {isLoading ? '...' : 'CONFIRM'}
                     </button>
                   </form>
                 </div>
 
                 <div className="feedback-container">
-                  {feedback.gif && <img src={feedback.gif} className="feedback-gif" alt="feedback" />}
-                  {feedback.message && <div className={`feedback ${feedback.type}`}>{feedback.message}</div>}
+                  {feedback.gif && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={feedback.gif} className="feedback-gif" alt="feedback" />
+                  )}
+                  {feedback.message && (
+                    <div className={`feedback ${feedback.type}`}>{feedback.message}</div>
+                  )}
                 </div>
               </div>
             </div>
