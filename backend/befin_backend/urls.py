@@ -3,7 +3,7 @@ from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('smtech-befin-admin/', admin.site.urls),
 
     # API endpoints
     path('api/users/', include('users.urls')),
