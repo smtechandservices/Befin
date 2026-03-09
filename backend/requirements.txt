@@ -26,3 +26,4 @@ uritemplate==4.2.0
 dj-database-url
 psycopg2-binary
 supabase
+whitenoise
