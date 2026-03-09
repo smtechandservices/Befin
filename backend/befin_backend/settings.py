@@ -12,7 +12,7 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-for-dev')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = os.getenv('DEBUG', 'False') == 'False'
 
 ALLOWED_HOSTS = ['*']
 
@@ -68,26 +68,15 @@ WSGI_APPLICATION = 'befin_backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
 import dj_database_url
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-# Override with Database URL if provided in .env (for Supabase)
-database_url = os.getenv('DATABASE_URL')
-
-if database_url:
-    DATABASES['default'] = dj_database_url.parse(
-        database_url,
+    'default': dj_database_url.parse(
+        os.getenv("DATABASE_URL"),
         conn_max_age=600,
         ssl_require=True
     )
-
+}
 
 
 # Password validation
@@ -169,3 +158,4 @@ SIMPLE_JWT = {
 
 # CORS Configuration
 CORS_ALLOW_ALL_ORIGINS = True # Change this for production
+CSRF_TRUSTED_ORIGINS = ['https://api.thebefin.com', 'http://127.0.0.1:8000']
