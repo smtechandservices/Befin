@@ -151,22 +151,14 @@ export default function WalletPage() {
                     new Promise(resolve => setTimeout(resolve, 500))
                 ]);
 
-                console.log("User Data:", profileData);
-                console.log("Wallet Data:", walletData);
-                console.log("Transactions Data:", txData);
-                console.log("Discounts Data:", discountsData);
-
                 setUser(profileData);
                 if (walletData) {
-                    console.log("Setting Wallet Status:", !!walletData);
                     setWallet(walletData);
                 }
 
                 if (Array.isArray(txData)) {
-                    console.log("Setting Transactions Count:", txData.length);
                     setTransactions(txData);
                 } else if (walletData && Array.isArray(walletData.transactions)) {
-                    console.log("Setting Transactions from Wallet Data:", walletData.transactions.length);
                     setTransactions(walletData.transactions);
                 }
 
