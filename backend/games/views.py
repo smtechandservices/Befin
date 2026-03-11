@@ -51,6 +51,18 @@ class GameViewSet(viewsets.ModelViewSet):
         serializer = GameTransactionSerializer(transactions, many=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['get'])
+    def check_play_limit(self, request, slug=None):
+        game = self.get_object()
+        from django.utils import timezone
+        today = timezone.now().date()
+        play_count = Leaderboard.objects.filter(
+            user=request.user,
+            game=game,
+            timestamp__date=today
+        ).count()
+        return Response({'can_play': play_count < 2, 'play_count': play_count})
+
 class GameAwardView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -68,6 +80,17 @@ class GameAwardView(APIView):
         return Response({'error': 'No awarding logic implemented for this game'}, status=status.HTTP_400_BAD_REQUEST)
 
     def award_azm(self, request, game):
+        from django.utils import timezone
+        today = timezone.now().date()
+        play_count = Leaderboard.objects.filter(
+            user=request.user,
+            game=game,
+            timestamp__date=today
+        ).count()
+        
+        if play_count >= 2:
+            return Response({'error': 'Daily play limit reached. You can only play twice a day.'}, status=status.HTTP_403_FORBIDDEN)
+
         coins = request.data.get('coins', 0)
         game_score = request.data.get('game_score', 0)
 

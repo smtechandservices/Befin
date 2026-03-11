@@ -15,9 +15,9 @@ const QUESTIONS_COUNT = 10;
 type AgePref = 'KID' | 'TEEN' | 'ADULT';
 
 const AGE_CONFIG: Record<AgePref, { timer: number; label: string; desc: string }> = {
-  KID: { timer: 20, label: "Junior Explorer", desc: "For youngsters learning about money!" },
-  TEEN: { timer: 20, label: "Finance Trainee", desc: "For teens building wealth habits." },
-  ADULT: { timer: 20, label: "Wall Street Pro", desc: "The ultimate challenge for experts!" },
+  KID: { timer: 40, label: "Beginner", desc: "For youngsters learning about money! (Hints available)" },
+  TEEN: { timer: 20, label: "Intermediate", desc: "For those building wealth habits. (No hints)" },
+  ADULT: { timer: 20, label: "Advanced", desc: "The ultimate challenge for experts! (No hints)" },
 };
 
 const SUCCESS_GIFS = [
@@ -58,6 +58,7 @@ function App() {
   const [currentLetterIndex, setCurrentLetterIndex] = useState<number>(0);
   const [inputValue, setInputValue] = useState<string>('');
   const [score, setScore] = useState<number>(0);
+  const [errorMsg, setErrorMsg] = useState<string>('');
   const [timeLeft, setTimeLeft] = useState<number>(30);
   const [feedback, setFeedback] = useState<Feedback>({ message: '', type: '', gif: '' });
   const [hint, setHint] = useState<string>('');
@@ -231,11 +232,26 @@ function App() {
     }
   };
 
-  const startGame = (e: React.FormEvent) => {
+  const startGame = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg('');
     if (username.trim()) {
-      setTimeLeft(AGE_CONFIG[agePref].timer);
-      setGameState('PLAYING');
+      setIsLoading(true);
+      try {
+        const checkPlay = await gamesService.checkPlayLimit('azm');
+        if (!checkPlay.can_play) {
+          setErrorMsg(`Daily limit reached! You have played twice today. Please come back tomorrow!`);
+          setIsLoading(false);
+          return;
+        }
+        setTimeLeft(AGE_CONFIG[agePref].timer);
+        setGameState('PLAYING');
+      } catch (err) {
+        console.error('Failed to check play limit', err);
+        setErrorMsg('Error verifying play limit. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -271,7 +287,10 @@ function App() {
     const isValid = await checkIsFinanceTerm(term);
 
     if (isValid) {
-      const points = hintUsed ? 50 : 100;
+      let points = 100;
+      if (agePref === 'KID') {
+        points = hintUsed ? 20 : 50;
+      }
       setScore(prev => prev + points);
       setFeedback({
         message: `${hintUsed ? 'GOOD!' : 'STUNNING!'} +${points} Points 💎`,
@@ -357,10 +376,17 @@ function App() {
                 </div>
 
                 <div className="action-group slide-up">
+                  {errorMsg && (
+                    <div style={{ color: '#ff4d4f', background: 'rgba(255, 77, 79, 0.1)', padding: '10px', borderRadius: '8px', marginBottom: '15px', textAlign: 'center', border: '1px solid #ff4d4f' }}>
+                      {errorMsg}
+                    </div>
+                  )}
                   <form onSubmit={startGame}>
-                    <button type="submit" className="start-btn">INITIALIZE CORE MISSION</button>
+                    <button type="submit" className="start-btn" disabled={isLoading}>
+                      {isLoading ? 'ANALYZING CLEARANCE...' : 'INITIALIZE CORE MISSION'}
+                    </button>
                   </form>
-                  <button className="exit-btn" onClick={() => router.push('/learning')}>
+                  <button className="exit-btn" onClick={() => router.push('/learning')} disabled={isLoading}>
                     BACK TO HUB
                   </button>
                 </div>
@@ -544,16 +570,18 @@ function App() {
               </div>
 
               <div className="action-center">
-                <div className="hint-section">
-                  <button
-                    className="lifeline-btn"
-                    onClick={getHint}
-                    disabled={!!hint || isLoading}
-                  >
-                    💡 Get Insight
-                  </button>
-                  {hint && <div className="hint-box fade-in">{hint}</div>}
-                </div>
+                {agePref === 'KID' && (
+                  <div className="hint-section">
+                    <button
+                      className="lifeline-btn"
+                      onClick={getHint}
+                      disabled={!!hint || isLoading}
+                    >
+                      💡 Get Insight
+                    </button>
+                    {hint && <div className="hint-box fade-in">{hint}</div>}
+                  </div>
+                )}
 
                 <div className="input-section">
                   <form onSubmit={handleSubmit} className="game-form">

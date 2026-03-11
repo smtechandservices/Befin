@@ -112,6 +112,11 @@ export const gamesService = {
         const response = await api.get(`/games/${slug}/my_transactions/`);
         return response.data;
     },
+
+    checkPlayLimit: async (slug: string) => {
+        const response = await api.get(`/games/${slug}/check_play_limit/`);
+        return response.data;
+    },
 };
 
 // Add a request interceptor to add the JWT token
