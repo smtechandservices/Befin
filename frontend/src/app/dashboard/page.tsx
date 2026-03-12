@@ -109,12 +109,9 @@ export default function Dashboard() {
                 {/* Local Header */}
                 <header className="px-6 md:px-10 py-6 md:py-8 shrink-0 flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl md:text-[2.5rem] font-black tracking-tight text-white leading-tight">
-                            Dashboard
+                        <h1 className="text-2xl md:text-[2.5rem] font-black tracking-tight text-white leading-tight">
+                            Hi {user?.first_name}
                         </h1>
-                        <p className="text-slate-400 font-semibold text-[10px] md:text-sm tracking-wide opacity-80 uppercase italic">
-                            Welcome back
-                        </p>
                     </div>
                     {/* Mobile Toggle */}
                     <button
@@ -340,16 +337,21 @@ export default function Dashboard() {
 
                         {/* Goal Tracker */}
                         <div className="flex-[1.5]">
-                            <div className="flex items-center justify-between mb-4 px-1">
-                                <h3 className="text-xl font-bold text-white">Goal Tracker</h3>
-                                <Link href="/goals" className="flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors">
-                                    Go to Goals <ChevronRight className="w-3 h-3" />
-                                </Link>
-                            </div>
-                            <div className="bg-[#18181c] border border-white/5 rounded-3xl p-5 h-[calc(100%-2.5rem)] flex flex-col gap-4">
+                            <div className="bg-[#18181c] border border-white/5 rounded-3xl p-5 flex flex-col gap-4">
+
+                                {/* Header */}
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-xl font-bold text-white">Goal Tracker</h3>
+                                    <Link href="/goals" className="flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors">
+                                        Go to Goals <ChevronRight className="w-3 h-3" />
+                                    </Link>
+                                </div>
+
                                 {/* Coming soon badge */}
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-full">Full tracking coming soon</span>
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-full">
+                                        Full tracking coming soon
+                                    </span>
                                 </div>
 
                                 {[
@@ -365,12 +367,14 @@ export default function Dashboard() {
                                                 <p className="text-sm font-bold text-white">{goal.label}</p>
                                                 <p className="text-xs font-black text-slate-400">{pct}%</p>
                                             </div>
+
                                             <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
                                                 <div
                                                     className={`h-full ${goal.color} rounded-full transition-all duration-700`}
                                                     style={{ width: `${pct}%` }}
                                                 />
                                             </div>
+
                                             <div className="flex justify-between text-[10px] font-bold text-slate-600">
                                                 <span>{goal.current.toLocaleString()} BFC</span>
                                                 <span>{goal.target.toLocaleString()} BFC</span>
@@ -378,6 +382,7 @@ export default function Dashboard() {
                                         </div>
                                     );
                                 })}
+
                             </div>
                         </div>
                     </div>
