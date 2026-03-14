@@ -8,6 +8,7 @@ import { authService, walletService, gamesService } from '../../lib/api';
 import Sidebar from '../../components/Sidebar';
 import FinanceNews from '../../components/FinanceNews';
 import LoadingScreen from '../../components/LoadingScreen';
+import GoalPieChart from '../../components/GoalPieChart';
 import {
     Target, BookOpen, History, User, LogOut,
     Home, Wallet, Search, Bell, CircleHelp, TrendingUp, TrendingDown,
@@ -254,7 +255,14 @@ export default function Dashboard() {
 
                         {/* Right Sidebar: Recent Transactions */}
                         <div className="flex-1 xl:flex-[1] flex flex-col">
-                            <div className="bg-[#18181c] border border-white/5 rounded-3xl p-6 flex flex-col h-[520px] overflow-y-auto no-scrollbar">
+                            {/* Motivational Quote */}
+                            <div className="bg-[#18181c] border border-white/5 rounded-xl px-6 py-4 mb-4 h-[120px] overflow-hidden flex items-center">
+                                <div className="flex flex-col gap-2">
+                                    <p className="text-sm font-semibold text-slate-300 leading-relaxed italic line-clamp-2"> " {quote.text} "</p>
+                                    <p className="text-[11px] font-black text-blue-400 uppercase tracking-widest">— {quote.author}</p>
+                                </div>
+                            </div>
+                            <div className="bg-[#18181c] border border-white/5 rounded-3xl p-6 flex flex-col h-[380px] overflow-y-auto no-scrollbar">
                                 <h3 className="text-xl font-bold text-white mb-4">Recent Transactions</h3>
                                 <hr className="border-white/10 py-1 px-4" />
                                 {transactions.length === 0 ? (
@@ -300,14 +308,6 @@ export default function Dashboard() {
 
                         {/* Learning Games */}
                         <div className="flex-1 min-w-[300px]">
-                            {/* Motivational Quote */}
-                            <div className="bg-[#18181c] border border-white/5 rounded-xl px-6 py-4 mb-4 h-[150px] overflow-hidden flex items-center">
-                                <div className="flex flex-col gap-2">
-                                    <p className="text-sm font-semibold text-slate-300 leading-relaxed italic line-clamp-2"> " {quote.text} "</p>
-                                    <p className="text-[11px] font-black text-blue-400 uppercase tracking-widest">— {quote.author}</p>
-                                </div>
-                            </div>
-
                             <div className="flex items-center justify-between mb-4 px-2">
                                 <h3 className="text-xl font-bold text-white">Learning Games</h3>
                                 <Link href="/learning" className="flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors">
@@ -339,7 +339,7 @@ export default function Dashboard() {
 
 
                         {/* Goal Tracker */}
-                        <div className="flex-[1.5]">
+                        <div className="flex-[2] min-w-0">
                             <div className="flex items-center justify-between mb-4 px-1">
                                 <h3 className="text-xl font-bold text-white">Goal Tracker</h3>
                                 <Link href="/goals" className="flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors">
@@ -352,32 +352,24 @@ export default function Dashboard() {
                                     <span className="text-[9px] font-black uppercase tracking-widest text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-full">Full tracking coming soon</span>
                                 </div>
 
-                                {[
-                                    { label: 'Emergency Fund', target: 10000, current: 4200, color: 'bg-blue-500' },
-                                    { label: 'New Laptop', target: 5000, current: 3750, color: 'bg-purple-500' },
-                                    { label: 'Vacation Trip', target: 8000, current: 1100, color: 'bg-green-500' },
-                                    { label: 'New Phone', target: 15000, current: 2500, color: 'bg-yellow-500' },
-                                ].map((goal) => {
-                                    const pct = Math.min(100, Math.round((goal.current / goal.target) * 100));
-                                    return (
-                                        <div key={goal.label} className="flex flex-col gap-2 p-3 hover:bg-[#1c1c24] transition-colors">
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-sm font-bold text-white">{goal.label}</p>
-                                                <p className="text-xs font-black text-slate-400">{pct}%</p>
-                                            </div>
-                                            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                                <div
-                                                    className={`h-full ${goal.color} rounded-full transition-all duration-700`}
-                                                    style={{ width: `${pct}%` }}
-                                                />
-                                            </div>
-                                            <div className="flex justify-between text-[10px] font-bold text-slate-600">
-                                                <span>{goal.current.toLocaleString()} BFC</span>
-                                                <span>{goal.target.toLocaleString()} BFC</span>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                                <div className="flex flex-row overflow-x-scroll gap-4 pb-2 w-full no-scrollbar">
+                                    {[
+                                        { label: 'Emergency Fund', target: 10000, current: 4200, color: 'bg-blue-500' },
+                                        { label: 'New Laptop', target: 5000, current: 3750, color: 'bg-purple-500' },
+                                        { label: 'Vacation Trip', target: 8000, current: 1100, color: 'bg-green-500' },
+                                        { label: 'New Phone', target: 15000, current: 2500, color: 'bg-yellow-500' },
+                                        { label: 'College Fund', target: 50000, current: 7500, color: 'bg-blue-500' },
+                                        { label: 'New Car', target: 12000, current: 6000, color: 'bg-green-500' },
+                                    ].map((goal) => (
+                                        <GoalPieChart
+                                            key={goal.label}
+                                            label={goal.label}
+                                            current={goal.current}
+                                            target={goal.target}
+                                            color={goal.color}
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
