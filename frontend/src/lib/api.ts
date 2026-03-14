@@ -91,8 +91,12 @@ export const walletService = {
         return response.data;
     },
 
-    awardCoins: async (slug: string, coins: number, gameScore: number) => {
-        const response = await api.post(`/games/${slug}/award/`, { coins, game_score: gameScore });
+    awardCoins: async (slug: string, coins: number, gameScore: number, hintUsed: boolean = false) => {
+        const response = await api.post(`/games/${slug}/award/`, {
+            coins,
+            game_score: gameScore,
+            hint_used: hintUsed
+        });
         return response.data;
     },
 };

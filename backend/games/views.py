@@ -75,6 +75,8 @@ class GameAwardView(APIView):
         # Dispatch to specific awarding logic based on slug
         if slug == 'azm':
             return self.award_azm(request, game)
+        elif slug == 'wordle':
+            return self.award_wordle(request, game)
         # Add more games here as they are developed
         
         return Response({'error': 'No awarding logic implemented for this game'}, status=status.HTTP_400_BAD_REQUEST)
@@ -115,6 +117,68 @@ class GameAwardView(APIView):
                 else:
                     wallet.balance -= abs_amount
                 
+                wallet.save()
+
+                Transaction.objects.create(
+                    wallet=wallet,
+                    amount=abs_amount,
+                    transaction_type=transaction_type,
+                    description=description
+                )
+
+            Leaderboard.objects.create(
+                user=request.user,
+                game=game,
+                score=int(game_score)
+            )
+
+        return Response({
+            'success': 'Wallet updated!',
+            'coins_awarded': coins_to_award,
+            'source': game.name,
+            'new_balance': wallet.balance
+        }, status=status.HTTP_200_OK)
+
+    def award_wordle(self, request, game):
+        from django.utils import timezone
+        today = timezone.now().date()
+        play_count = Leaderboard.objects.filter(
+            user=request.user,
+            game=game,
+            timestamp__date=today
+        ).count()
+        
+        if play_count >= 2:
+            return Response({'error': 'Daily play limit reached. You can only play twice a day.'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Wordle scoring: (7 - attempts) * 10 coins. Max 60 coins.
+        # Front-end should send { "attempts": X, "game_score": Y }
+        # Note: walletService.awardCoins sends 'coins' as the second parameter.
+        attempts = request.data.get('attempts', request.data.get('coins', 7)) 
+        game_score = request.data.get('game_score', 0)
+        
+        try:
+            attempts_int = int(attempts)
+            if attempts_int <= 6:
+                coins_to_award = (7 - attempts_int) * 10
+                # Apply 50% penalty if hint was used
+                if request.data.get('hint_used', False):
+                    coins_to_award = coins_to_award // 2
+            else:
+                coins_to_award = 0
+        except (ValueError, TypeError):
+            return Response({'error': 'Invalid attempts value'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Determine transaction details
+        transaction_type = 'reward'
+        description = f'Reward from game: {game.name}'
+        abs_amount = Decimal(str(abs(coins_to_award)))
+
+        with transaction.atomic():
+            wallet, _ = Wallet.objects.select_for_update().get_or_create(user=request.user)
+            
+            if abs_amount > 0:
+                wallet.balance += abs_amount
                 wallet.save()
 
                 Transaction.objects.create(
