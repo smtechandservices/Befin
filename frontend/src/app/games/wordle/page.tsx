@@ -60,13 +60,6 @@ export default function WordleGame() {
         setErrorMsg('');
         setIsLoading(true);
         try {
-            const checkPlay = await gamesService.checkPlayLimit('wordle');
-            if (!checkPlay.can_play) {
-                setErrorMsg(`Daily limit reached! You have played twice today. Please come back tomorrow!`);
-                setIsLoading(false);
-                return;
-            }
-
             const randomWordObj = FINANCE_WORDS[Math.floor(Math.random() * FINANCE_WORDS.length)];
             setSolution(randomWordObj.term.toUpperCase());
             setGuesses([]);

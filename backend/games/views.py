@@ -140,17 +140,6 @@ class GameAwardView(APIView):
         }, status=status.HTTP_200_OK)
 
     def award_wordle(self, request, game):
-        from django.utils import timezone
-        today = timezone.now().date()
-        play_count = Leaderboard.objects.filter(
-            user=request.user,
-            game=game,
-            timestamp__date=today
-        ).count()
-        
-        if play_count >= 2:
-            return Response({'error': 'Daily play limit reached. You can only play twice a day.'}, status=status.HTTP_403_FORBIDDEN)
-
         # Wordle scoring: (7 - attempts) * 10 coins. Max 60 coins.
         # Front-end should send { "attempts": X, "game_score": Y }
         # Note: walletService.awardCoins sends 'coins' as the second parameter.
