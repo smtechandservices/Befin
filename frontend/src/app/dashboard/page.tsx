@@ -330,7 +330,7 @@ export default function Dashboard() {
                                                 <span className="text-[10px] font-bold text-slate-500">{game.genre} • Age {game.age_req}+</span>
                                                 {game.description && <p className="text-[10px] text-slate-400 mt-1 line-clamp-1">{game.description}</p>}
                                             </div>
-                                            <span className="text-[9px] font-black uppercase tracking-wider text-blue-400 bg-blue-500/10 px-2 py-1 rounded-lg">Live</span>
+                                            <span className="text-[9px] font-black uppercase tracking-wider text-blue-400 bg-blue-500/10 px-2 py-1 rounded-lg">{game.genre}</span>
                                         </Link>
                                     ))
                                 )}
