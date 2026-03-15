@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Wallet, Target, BookOpen, User, LogOut, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, Wallet, Target, BookOpen, User, LogOut, X, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { authService } from '../lib/api';
 
 interface SidebarProps {
@@ -38,6 +38,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         { name: 'Wallet', icon: Wallet, href: '/wallet' },
         { name: 'Goals', icon: Target, href: '/goals' },
         { name: 'Learning', icon: BookOpen, href: '/learning' },
+        { name: 'Events', icon: Calendar, href: '/events' },
         { name: 'Profile', icon: User, href: '/profile' },
     ];
 
