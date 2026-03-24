@@ -7,7 +7,7 @@ import { authService, walletService, gamesService } from '@/lib/api';
 import { FINANCE_KEYWORDS } from './keywords';
 import { FINANCE_TERMS as FINANCE_TERMS_RAW } from './constants';
 const FINANCE_TERMS = FINANCE_TERMS_RAW as Record<string, string[]>;
-import './index.css';
+import styles from './azm.module.css';
 
 const ALL_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const QUESTIONS_COUNT = 10;
@@ -124,8 +124,9 @@ function App() {
 
   const handleTimeOut = () => {
     if (timerRef.current !== null) clearInterval(timerRef.current);
+    setScore(prev => prev - 10);
     setFeedback({
-      message: 'TIME EXPIRED! Analysis Terminated. ⏱️',
+      message: 'TIME EXPIRED! Analysis Terminated. -10 Points ⏱️',
       type: 'error',
       gif: FAILURE_GIFS[Math.floor(Math.random() * FAILURE_GIFS.length)],
     });
@@ -264,8 +265,9 @@ function App() {
     if (timerRef.current !== null) clearInterval(timerRef.current);
 
     if (!term) {
+      setScore(prev => prev - 10);
       setFeedback({
-        message: 'No input detected! Skipping... ⏭️',
+        message: 'No input detected! Skipping... -10 Points ⏭️',
         type: 'error',
         gif: FAILURE_GIFS[Math.floor(Math.random() * FAILURE_GIFS.length)],
       });
@@ -311,121 +313,121 @@ function App() {
 
   if (gameState === 'WELCOME') {
     return (
-      <div className="azm-body">
-        <div className="game-container welcome-state fade-in">
-          <aside className="game-sidebar">
-            <div className="sidebar-card profile-card">
-              <div className="avatar">{username[0]?.toUpperCase()}</div>
-              <div className="profile-info">
-                <div className="username">{username}</div>
-                <div className="rank-badge">Active Player</div>
+      <div className={styles.azmBody}>
+        <div className={`${styles['game-container']} ${styles['welcome-state']} ${styles['fade-in']}`}>
+          <aside className={styles['game-sidebar']}>
+            <div className={`${styles['sidebar-card']} ${styles['profile-card']}`}>
+              <div className={styles.avatar}>{username[0]?.toUpperCase()}</div>
+              <div className={styles['profile-info']}>
+                <div className={styles.username}>{username}</div>
+                <div className={styles['rank-badge']}>Active Player</div>
               </div>
             </div>
 
-            <div className="sidebar-card wallet-card">
-              <div className="card-header">
-                <span className="icon">💳</span>
-                <span className="title">Your Account</span>
+            <div className={`${styles['sidebar-card']} ${styles['wallet-card']}`}>
+              <div className={styles['card-header']}>
+                <span className={styles.icon}>💳</span>
+                <span className={styles.title}>Your Account</span>
               </div>
-              <div className="wallet-stats">
-                <div className="stat">
-                  <span className="label">Current Balance</span>
-                  <span className="value">{walletBalance} <small>BFC</small></span>
+              <div className={styles['wallet-stats']}>
+                <div className={styles.stat}>
+                  <span className={styles.label}>Current Balance</span>
+                  <span className={styles.value}>{walletBalance} <small>BFC</small></span>
                 </div>
               </div>
             </div>
 
-            <div className="sidebar-card leaderboard-card">
-              <div className="card-header">
-                <span className="icon">🏆</span>
-                <span className="title">Global Rankings</span>
+            <div className={`${styles['sidebar-card']} ${styles['leaderboard-card']}`}>
+              <div className={styles['card-header']}>
+                <span className={styles.icon}>🏆</span>
+                <span className={styles.title}>Global Rankings</span>
               </div>
-              <div className="stats-list">
+              <div className={styles['stats-list']}>
                 {leaderboard.length > 0
                   ? leaderboard.map((entry, i) => (
-                    <div key={i} className="stats-item">
-                      <span className="rank">#{i + 1}</span>
-                      <span className="name">{entry.username}</span>
-                      <span className={entry.score >= 0 ? 'text-green-500' : 'text-red-500'}>
+                    <div key={i} className={styles['stats-item']}>
+                      <span className={styles.rank}>#{i + 1}</span>
+                      <span className={styles.name}>{entry.username}</span>
+                      <span className={entry.score >= 0 ? styles['text-green-500'] : styles['text-red-500']}>
                         {entry.score > 0 ? `+${entry.score}` : entry.score}
                       </span>
                     </div>
                   ))
-                  : <div className="empty-msg">No entries yet</div>}
+                  : <div className={styles['empty-msg']}>No entries yet</div>}
               </div>
             </div>
           </aside>
 
-          <main className="game-main">
-            <div className="main-content-card welcome-hero">
-              <div className="hero-content">
-                <h1 className="slide-up">A-Z of Money</h1>
-                <p className="subtitle slide-up">Master the language of global finance and build your digital empire.</p>
+          <main className={styles['game-main']}>
+            <div className={`${styles['main-content-card']} ${styles['welcome-hero']}`}>
+              <div className={styles['hero-content']}>
+                <h1 className={styles['slide-up']}>A-Z of Money</h1>
+                <p className={`${styles.subtitle} ${styles['slide-up']}`}>Master the language of global finance and build your digital empire.</p>
 
-                <div className="age-selector slide-up">
+                <div className={`${styles['age-selector']} ${styles['slide-up']}`}>
                   {(Object.keys(AGE_CONFIG) as AgePref[]).map((pref) => (
                     <div
                       key={pref}
-                      className={`age-option ${agePref === pref ? 'active' : ''}`}
+                      className={`${styles['age-option']} ${agePref === pref ? styles.active : ''}`}
                       onClick={() => setAgePref(pref)}
                     >
-                      <div className="age-title">{AGE_CONFIG[pref].label}</div>
-                      <div className="age-desc">{AGE_CONFIG[pref].desc}</div>
+                      <div className={styles['age-title']}>{AGE_CONFIG[pref].label}</div>
+                      <div className={styles['age-desc']}>{AGE_CONFIG[pref].desc}</div>
                     </div>
                   ))}
                 </div>
 
-                <div className="action-group slide-up">
+                <div className={`${styles['action-group']} ${styles['slide-up']}`}>
                   {errorMsg && (
                     <div style={{ color: '#ff4d4f', background: 'rgba(255, 77, 79, 0.1)', padding: '10px', borderRadius: '8px', marginBottom: '15px', textAlign: 'center', border: '1px solid #ff4d4f' }}>
                       {errorMsg}
                     </div>
                   )}
                   <form onSubmit={startGame}>
-                    <button type="submit" className="start-btn" disabled={isLoading}>
+                    <button type="submit" className={styles['start-btn']} disabled={isLoading}>
                       {isLoading ? 'ANALYZING CLEARANCE...' : 'INITIALIZE CORE MISSION'}
                     </button>
                   </form>
-                  <button className="exit-btn" onClick={() => router.push('/learning')} disabled={isLoading}>
+                  <button className={styles['exit-btn']} onClick={() => router.push('/learning')} disabled={isLoading}>
                     BACK TO HUB
                   </button>
                 </div>
 
-                <div className="how-to-play-guide">
+                <div className={styles['how-to-play-guide']}>
                   <h3>🎮 Operational Manual</h3>
-                  <div className="guide-grid">
-                    <div className="guide-step">
-                      <div className="step-num">01</div>
+                  <div className={styles['guide-grid']}>
+                    <div className={styles['guide-step']}>
+                      <div className={styles['step-num']}>01</div>
                       <p>Enter a <strong>Finance Term</strong> starting with the assigned letter.</p>
                     </div>
-                    <div className="guide-step">
-                      <div className="step-num">02</div>
+                    <div className={styles['guide-step']}>
+                      <div className={styles['step-num']}>02</div>
                       <p>Earn <strong>Elite Points</strong> for correct submissions.</p>
                     </div>
-                    <div className="guide-step">
-                      <div className="step-num">03</div>
+                    <div className={styles['guide-step']}>
+                      <div className={styles['step-num']}>03</div>
                       <p>Use <strong>Insights</strong> if you&apos;re stuck on a complex term.</p>
                     </div>
-                    <div className="guide-step">
-                      <div className="step-num">04</div>
+                    <div className={styles['guide-step']}>
+                      <div className={styles['step-num']}>04</div>
                       <p>Complete A-Z to sync <strong>BeCoins</strong> back to your treasury.</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="recent-activity">
+              <div className={styles['recent-activity']}>
                 <h3>📜 Recent Performance</h3>
-                <div className="activity-list">
+                <div className={styles['activity-list']}>
                   {recentTransactions.length > 0
                     ? recentTransactions.map((tx, i) => (
-                      <div key={i} className="activity-item">
-                        <span className="date">{new Date(tx.timestamp).toLocaleDateString()}</span>
-                        <span className="desc">{tx.description}</span>
-                        <span className="amount">+{tx.amount} BFC</span>
+                      <div key={i} className={styles['activity-item']}>
+                        <span className={styles.date}>{new Date(tx.timestamp).toLocaleDateString()}</span>
+                        <span className={styles.desc}>{tx.description}</span>
+                        <span className={styles.amount}>+{tx.amount} BFC</span>
                       </div>
                     ))
-                    : <div className="empty-msg">No recent missions recorded</div>}
+                    : <div className={styles['empty-msg']}>No recent missions recorded</div>}
                 </div>
               </div>
             </div>
@@ -437,44 +439,44 @@ function App() {
 
   if (gameState === 'WIN') {
     return (
-      <div className="azm-body">
-        <div className="game-container win-state fade-in">
-          <main className="win-content">
-            <div className={`victory-card slide-up ${score < 0 ? 'failure' : ''}`}>
-              <div className="victory-header">
-                <div className="trophy">{score < 0 ? '🚫' : '🏆'}</div>
+      <div className={styles.azmBody}>
+        <div className={`${styles['game-container']} ${styles['win-state']} ${styles['fade-in']}`}>
+          <main className={styles['win-content']}>
+            <div className={`${styles['victory-card']} ${styles['slide-up']} ${score < 0 ? styles.failure : ''}`}>
+              <div className={styles['victory-header']}>
+                <div className={styles.trophy}>{score < 0 ? '🚫' : '🏆'}</div>
                 <h1>{score < 0 ? 'MISSION FAILED' : 'MISSION SUCCESS'}</h1>
-                <p className="subtitle">
+                <p className={styles.subtitle}>
                   {score < 0 ? 'Better luck next time' : 'Elite Financial Recognition Secured'}
                 </p>
               </div>
 
-              <div className="victory-stats">
-                <div className="v-stat">
-                  <span className="label">SCORE GENERATED</span>
-                  <span className="value">{score}</span>
+              <div className={styles['victory-stats']}>
+                <div className={styles['v-stat']}>
+                  <span className={styles.label}>SCORE GENERATED</span>
+                  <span className={styles.value}>{score}</span>
                 </div>
-                <div className="v-stat highlight">
-                  <span className="label">
+                <div className={`${styles['v-stat']} ${styles.highlight}`}>
+                  <span className={styles.label}>
                     {score < 0 ? 'BECOINS DEDUCTED' : 'BECOINS SECURED'}
                   </span>
-                  <span className={`value ${score < 0 ? 'text-red-500' : ''}`}>
+                  <span className={`${styles.value} ${score < 0 ? 'text-red-500' : ''}`}>
                     {score < 0 ? '-' : '+'}{Math.abs(Math.min(Math.floor(score / 10), 100))}
                   </span>
                 </div>
               </div>
 
-              <div className="sync-indicator">
+              <div className={styles['sync-indicator']}>
                 {isLoading
-                  ? <div className="sync-status">Updating BeFin Treasury... 🔄</div>
-                  : <div className="sync-status success">Treasury Sync Complete ✅</div>}
+                  ? <div className={styles['sync-status']}>Updating BeFin Treasury... 🔄</div>
+                  : <div className={`${styles['sync-status']} ${styles.success}`}>Treasury Sync Complete ✅</div>}
               </div>
 
-              <div className="victory-actions">
-                <button className="elite-btn primary" onClick={() => window.location.reload()}>
+              <div className={styles['victory-actions']}>
+                <button className={`${styles['elite-btn']} ${styles.primary}`} onClick={() => window.location.reload()}>
                   RE-ENGAGE MISSION
                 </button>
-                <button className="elite-btn secondary" onClick={() => router.push('/dashboard')}>
+                <button className={`${styles['elite-btn']} ${styles.secondary}`} onClick={() => router.push('/dashboard')}>
                   RETURN TO BASE
                 </button>
               </div>
@@ -486,105 +488,105 @@ function App() {
   }
 
   return (
-    <div className="azm-body">
-      <div className="game-container fade-in">
+    <div className={styles.azmBody}>
+      <div className={`${styles['game-container']} ${styles['fade-in']}`}>
         <button
-          className="back-edge-btn"
+          className={styles['back-edge-btn']}
           onClick={() => router.push('/dashboard')}
           title="Return to Dashboard"
         >
           ✕
         </button>
 
-        <aside className="game-sidebar">
-          <div className="sidebar-card profile-card">
-            <div className="avatar">{username[0]?.toUpperCase()}</div>
-            <div className="profile-info">
-              <div className="username">{username}</div>
-              <div className="rank-badge">{AGE_CONFIG[agePref].label}</div>
+        <aside className={styles['game-sidebar']}>
+          <div className={`${styles['sidebar-card']} ${styles['profile-card']}`}>
+            <div className={styles.avatar}>{username[0]?.toUpperCase()}</div>
+            <div className={styles['profile-info']}>
+              <div className={styles.username}>{username}</div>
+              <div className={styles['rank-badge']}>{AGE_CONFIG[agePref].label}</div>
             </div>
           </div>
 
-          <div className="sidebar-card wallet-card">
-            <div className="card-header">
-              <span className="icon">💳</span>
-              <span className="title">Wallet</span>
+          <div className={`${styles['sidebar-card']} ${styles['wallet-card']}`}>
+            <div className={styles['card-header']}>
+              <span className={styles.icon}>💳</span>
+              <span className={styles.title}>Wallet</span>
             </div>
-            <div className="wallet-stats">
-              <div className="stat">
-                <span className="label">Balance</span>
-                <span className="value">{walletBalance} <small>BFC</small></span>
+            <div className={styles['wallet-stats']}>
+              <div className={styles.stat}>
+                <span className={styles.label}>Balance</span>
+                <span className={styles.value}>{walletBalance} <small>BFC</small></span>
               </div>
-              <div className="stat">
-                <span className="label">Session</span>
-                <span className="value">{score} <small>PTS</small></span>
+              <div className={styles.stat}>
+                <span className={styles.label}>Session</span>
+                <span className={styles.value}>{score} <small>PTS</small></span>
               </div>
             </div>
           </div>
 
-          <div className="sidebar-card leaderboard-card overflow-y-auto max-h-[400px]">
-            <div className="card-header sticky top-0">
-              <span className="icon">🏆</span>
-              <span className="title">Top Elite</span>
+          <div className={`${styles['sidebar-card']} ${styles['leaderboard-card']} overflow-y-auto max-h-[400px]`}>
+            <div className={`${styles['card-header']} sticky top-0`}>
+              <span className={styles.icon}>🏆</span>
+              <span className={styles.title}>Top Elite</span>
             </div>
-            <div className="stats-list">
+            <div className={styles['stats-list']}>
               {leaderboard.length > 0
                 ? leaderboard.map((entry, i) => (
-                  <div key={i} className="stats-item">
-                    <span className="rank">#{i + 1}</span>
-                    <span className="name">{entry.username}</span>
-                    <span className={`score ${entry.score >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  <div key={i} className={styles['stats-item']}>
+                    <span className={styles.rank}>#{i + 1}</span>
+                    <span className={styles.name}>{entry.username}</span>
+                    <span className={`${styles.score} ${entry.score >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                       {entry.score > 0 ? `+${entry.score}` : entry.score}
                     </span>
                   </div>
                 ))
-                : <div className="empty-msg">No entries yet</div>}
+                : <div className={styles['empty-msg']}>No entries yet</div>}
             </div>
           </div>
         </aside>
 
-        <main className="game-main">
-          <div className="main-content-card">
-            <div className="game-header">
-              <div className="timer-display">
-                <span className="label">Remaining</span>
-                <span className="time" style={{ color: timeLeft < 5 ? 'var(--error)' : 'inherit' }}>
+        <main className={styles['game-main']}>
+          <div className={styles['main-content-card']}>
+            <div className={styles['game-header']}>
+              <div className={styles['timer-display']}>
+                <span className={styles.label}>Remaining</span>
+                <span className={styles.time} style={{ color: timeLeft < 5 ? 'var(--error)' : 'inherit' }}>
                   {timeLeft}s
                 </span>
               </div>
-              <div className="progress-section">
-                <div className="progress-text">Level {currentLetterIndex + 1} of {QUESTIONS_COUNT}</div>
-                <div className="progress-track">
+              <div className={styles['progress-section']}>
+                <div className={styles['progress-text']}>Level {currentLetterIndex + 1} of {QUESTIONS_COUNT}</div>
+                <div className={styles['progress-track']}>
                   <div
-                    className="progress-bar-elite"
+                    className={styles['progress-bar-elite']}
                     style={{ width: `${((currentLetterIndex + 1) / QUESTIONS_COUNT) * 100}%` }}
                   />
                 </div>
               </div>
             </div>
 
-            <div className="game-canvas">
-              <div className="letter-ring-container">
-                <div className="letter-ring">{currentLetter}</div>
-                <div className="ring-glow" />
+            <div className={styles['game-canvas']}>
+              <div className={styles['letter-ring-container']}>
+                <div className={styles['letter-ring']}>{currentLetter}</div>
+                <div className={styles['ring-glow']} />
               </div>
 
-              <div className="action-center">
+              <div className={styles['action-center']}>
                 {agePref === 'KID' && (
-                  <div className="hint-section">
+                  <div className={styles['hint-section']}>
                     <button
-                      className="lifeline-btn"
+                      className={styles['lifeline-btn']}
                       onClick={getHint}
                       disabled={!!hint || isLoading}
                     >
                       💡 Get Insight
                     </button>
-                    {hint && <div className="hint-box fade-in">{hint}</div>}
+                    {hint && <div className={`${styles['hint-box']} ${styles['fade-in']}`}>{hint}</div>}
                   </div>
                 )}
 
-                <div className="input-section">
-                  <form onSubmit={handleSubmit} className="game-form">
+                <div className={styles['input-section']}>
+                  <form onSubmit={handleSubmit} className={styles['game-form']}>
                     <input
                       ref={inputRef}
                       type="text"
@@ -594,19 +596,19 @@ function App() {
                       disabled={isLoading}
                       autoFocus
                     />
-                    <button className="confirm-btn" disabled={isLoading}>
+                    <button className={styles['confirm-btn']} disabled={isLoading}>
                       {isLoading ? '...' : 'CONFIRM'}
                     </button>
                   </form>
                 </div>
 
-                <div className="feedback-container">
+                <div className={styles['feedback-container']}>
                   {feedback.gif && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={feedback.gif} className="feedback-gif" alt="feedback" />
+                    <img src={feedback.gif} className={styles['feedback-gif']} alt="feedback" />
                   )}
                   {feedback.message && (
-                    <div className={`feedback ${feedback.type}`}>{feedback.message}</div>
+                    <div className={`${styles.feedback} ${styles[feedback.type]}`}>{feedback.message}</div>
                   )}
                 </div>
               </div>

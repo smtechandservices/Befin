@@ -5,12 +5,12 @@ import confetti from 'canvas-confetti';
 import { useRouter } from 'next/navigation';
 import { authService, walletService, gamesService } from '@/lib/api';
 import { FINANCE_WORDS } from './words';
-import './index.css';
+import styles from './wordle.module.css';
 
 const MAX_ATTEMPTS = 6;
 const WORD_LENGTH = 5;
 
-type GameState = 'PLAYING' | 'WON' | 'LOST' | 'WELCOME';
+type GameState = 'PLAYING' | 'WON' | 'LOST' | 'WELCOME' | 'SKIPPED';
 
 interface LeaderboardEntry {
     username: string;
@@ -156,6 +156,11 @@ export default function WordleGame() {
         }
     };
 
+    const skipGame = () => {
+        if (gameState !== 'PLAYING') return;
+        setGameState('SKIPPED');
+    };
+
     const getTileState = (word: string, index: number) => {
         const char = word[index];
         if (char === solution[index]) return 'correct';
@@ -164,25 +169,25 @@ export default function WordleGame() {
     };
 
     return (
-        <div className="wordle-body">
-            <button className="exit-btn" onClick={() => router.push('/dashboard')}>✕</button>
+        <div className={styles.wordleBody}>
+            <button className={styles['exit-btn']} onClick={() => router.push('/dashboard')}>✕</button>
 
-            <aside className="game-sidebar">
-                <div className="sidebar-card profile-card">
-                    <div className="avatar">{username[0]?.toUpperCase()}</div>
-                    <div className="profile-info">
-                        <div className="username">{username}</div>
-                        <div className="rank-badge">Finance Pro</div>
+            <aside className={styles['game-sidebar']}>
+                <div className={`${styles['sidebar-card']} ${styles['profile-card']}`}>
+                    <div className={styles.avatar}>{username[0]?.toUpperCase()}</div>
+                    <div className={styles['profile-info']}>
+                        <div className={styles.username}>{username}</div>
+                        <div className={styles['rank-badge']}>Finance Pro</div>
                     </div>
                 </div>
 
-                <div className="sidebar-card wallet-card">
-                    <div className="title">Befin Treasury</div>
-                    <div className="value">{walletBalance} <small>BFC</small></div>
+                <div className={`${styles['sidebar-card']} ${styles['wallet-card']}`}>
+                    <div className={styles.title}>Befin Treasury</div>
+                    <div className={styles.value}>{walletBalance} <small>BFC</small></div>
                 </div>
 
-                <div className="sidebar-card leaderboard-card">
-                    <div className="title" style={{ marginBottom: '10px', display: 'block' }}>Global Ranking</div>
+                <div className={`${styles['sidebar-card']} ${styles['leaderboard-card']}`}>
+                    <div className={styles.title} style={{ marginBottom: '10px', display: 'block' }}>Global Ranking</div>
                     {leaderboard.map((entry, i) => (
                         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px' }}>
                             <span>#{i + 1} {entry.username}</span>
@@ -192,39 +197,48 @@ export default function WordleGame() {
                 </div>
             </aside>
 
-            <div className="wordle-container fade-in">
-                <header className="wordle-header">
+            <div className={`${styles['wordle-container']} ${styles['fade-in']}`}>
+                <header className={styles['wordle-header']}>
                     <h1>BEFIN WORDLE</h1>
-                    <button
-                        className="hint-btn"
-                        onClick={showHint}
-                        disabled={gameState !== 'PLAYING' || hintUsed}
-                    >
-                        {hintUsed ? '💡 Hint Used' : '💡 Get Hint'}
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                            className={styles['hint-btn']}
+                            onClick={showHint}
+                            disabled={gameState !== 'PLAYING' || hintUsed}
+                        >
+                            {hintUsed ? '💡 Hint Used' : '💡 Get Hint'}
+                        </button>
+                        <button
+                            className={styles['skip-btn']}
+                            onClick={skipGame}
+                            disabled={gameState !== 'PLAYING'}
+                        >
+                            ⏭️ Skip
+                        </button>
+                    </div>
                 </header>
 
                 {hint && (
-                    <div className="hint-box fade-in">
+                    <div className={`${styles['hint-box']} ${styles['fade-in']}`}>
                         <strong>Clue:</strong> {hint}
-                        <p className="hint-penalty">(-50% Reward Penalty applied)</p>
+                        <p className={styles['hint-penalty']}>(-50% Reward Penalty applied)</p>
                     </div>
                 )}
 
-                <main className="game-board">
-                    <div className="grid">
+                <main className={styles['game-board']}>
+                    <div className={styles.grid}>
                         {Array.from({ length: MAX_ATTEMPTS }).map((_, i) => {
                             const guess = guesses[i];
                             const isCurrent = i === guesses.length;
 
                             return (
-                                <div key={i} className={`row ${isCurrent && currentGuess.length === WORD_LENGTH ? '' : ''}`}>
+                                <div key={i} className={styles.row}>
                                     {Array.from({ length: WORD_LENGTH }).map((_, j) => {
                                         const char = isCurrent ? currentGuess[j] : guess ? guess[j] : '';
                                         const state = guess ? getTileState(guess, j) : isCurrent && char ? 'active' : '';
 
                                         return (
-                                            <div key={j} className="tile" data-state={state}>
+                                            <div key={j} className={styles.tile} data-state={state}>
                                                 {char}
                                             </div>
                                         );
@@ -235,13 +249,13 @@ export default function WordleGame() {
                     </div>
                 </main>
 
-                <section className="keyboard">
+                <section className={styles.keyboard}>
                     {[['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'], ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'], ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'BACK']].map((row, i) => (
-                        <div key={i} className="keyboard-row">
+                        <div key={i} className={styles['keyboard-row']}>
                             {row.map(key => (
                                 <button
                                     key={key}
-                                    className={`key ${key.length > 1 ? 'large' : ''}`}
+                                    className={`${styles.key} ${key.length > 1 ? styles.large : ''}`}
                                     data-state={usedLetters[key] || ''}
                                     onClick={() => {
                                         if (key === 'ENTER') submitGuess();
@@ -258,12 +272,12 @@ export default function WordleGame() {
             </div>
 
             {gameState === 'WELCOME' && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
+                <div className={styles['modal-overlay']}>
+                    <div className={styles['modal-content']}>
                         <h2>Befin Wordle</h2>
                         <p>Guess the 5-letter finance word in 6 tries. Boost your treasury!</p>
                         {errorMsg && <p style={{ color: '#ff4d4f', fontSize: '14px' }}>{errorMsg}</p>}
-                        <button className="primary-btn" onClick={startNewGame} disabled={isLoading}>
+                        <button className={styles['primary-btn']} onClick={startNewGame} disabled={isLoading}>
                             {isLoading ? 'PREPARING...' : 'START GAME'}
                         </button>
                     </div>
@@ -271,24 +285,35 @@ export default function WordleGame() {
             )}
 
             {gameState === 'WON' && (
-                <div className="modal-overlay">
-                    <div className="modal-content bounce">
+                <div className={styles['modal-overlay']}>
+                    <div className={`${styles['modal-content']} ${styles.bounce}`}>
                         <h2>STUNNING!</h2>
                         <p>You cracked the code in {guesses.length} attempts.</p>
-                        <div className="score">+{(7 - guesses.length) * 10} BFC</div>
-                        <button className="primary-btn" onClick={() => window.location.reload()}>PLAY AGAIN</button>
-                        <button className="secondary-btn" onClick={() => router.push('/dashboard')}>DASHBOARD</button>
+                        <div className={styles.score}>+{(7 - guesses.length) * 10} BFC</div>
+                        <button className={styles['primary-btn']} onClick={() => window.location.reload()}>PLAY AGAIN</button>
+                        <button className={styles['secondary-btn']} onClick={() => router.push('/dashboard')}>DASHBOARD</button>
                     </div>
                 </div>
             )}
 
             {gameState === 'LOST' && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
+                <div className={styles['modal-overlay']}>
+                    <div className={styles['modal-content']}>
                         <h2>MISSION FAILED</h2>
                         <p>The word was <strong>{solution}</strong></p>
-                        <button className="primary-btn" onClick={() => window.location.reload()}>TRY AGAIN</button>
-                        <button className="secondary-btn" onClick={() => router.push('/dashboard')}>DASHBOARD</button>
+                        <button className={styles['primary-btn']} onClick={() => window.location.reload()}>TRY AGAIN</button>
+                        <button className={styles['secondary-btn']} onClick={() => router.push('/dashboard')}>DASHBOARD</button>
+                    </div>
+                </div>
+            )}
+
+            {gameState === 'SKIPPED' && (
+                <div className={styles['modal-overlay']}>
+                    <div className={styles['modal-content']}>
+                        <h2>MISSION SKIPPED</h2>
+                        <p>The word was <strong>{solution}</strong></p>
+                        <button className={styles['primary-btn']} onClick={() => window.location.reload()}>PLAY AGAIN</button>
+                        <button className={styles['secondary-btn']} onClick={() => router.push('/dashboard')}>DASHBOARD</button>
                     </div>
                 </div>
             )}

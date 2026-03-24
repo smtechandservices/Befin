@@ -1,4 +1,4 @@
-:root {
+.wordleBody {
   --wordle-correct: #00ff88;
   --wordle-present: #fccb0b;
   --wordle-absent: #3a3a3c;
@@ -6,9 +6,6 @@
   --wordle-border: #2d2d30;
   --wordle-text: #ffffff;
   --wordle-key: #818384;
-}
-
-.wordle-body {
   margin: 0;
   padding: 0;
   background-color: var(--wordle-bg);
@@ -70,6 +67,30 @@
 
 .hint-btn:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.skip-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--wordle-border);
+  color: #888;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+}
+
+.skip-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: #666;
+}
+
+.skip-btn:disabled {
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
@@ -292,7 +313,7 @@
 }
 
 @media (min-width: 1024px) {
-  .wordle-body {
+  .wordleBody {
     flex-direction: row;
     justify-content: center;
     gap: 40px;
