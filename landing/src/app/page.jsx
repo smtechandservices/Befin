@@ -65,7 +65,7 @@ export default function Home() {
               data-aos="fade-right"
             >
               <div
-                className="relative w-[40vw] min-h-[40vw] sm:min-h-[60vw] lg:min-h-[65vh]"
+                className="relative w-[40vw] min-h-[40vw] sm:min-h-[60vw] lg:min-h-[82vh]"
                 style={{
                   maskImage: 'url(/left-transparent.svg)',
                   WebkitMaskImage: 'url(/left-transparent.svg)',
