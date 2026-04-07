@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import ChatBot from "../components/ChatBot";
 
 export const metadata: Metadata = {
   title: "BeFin - Learn. Play. Earn.",
@@ -31,6 +32,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans">
         {children}
+        <ChatBot />
       </body>
     </html>
   );

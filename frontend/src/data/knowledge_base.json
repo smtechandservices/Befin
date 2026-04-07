@@ -1,0 +1,42 @@
+{
+    "platform": {
+        "name": "Befin",
+        "description": "Befin is a platform that allows users to master finance through games, virtual investing, and secure payment - all in one app. Learn. Play. Earn.",
+        "core_features": [
+            {
+                "name": "Befin Coins",
+                "description": "The virtual currency of the Befin platform. Users can earn them, deposit them, and spend them while playing learning games or achieving goals."
+            },
+            {
+                "name": "Goals Tracker",
+                "description": "A feature helping users set financial goals (e.g., Emergency Fund, New Laptop, Vacation Trip) and track progress visually."
+            },
+            {
+                "name": "Learning Games",
+                "description": "Interactive games across different genres to learn about finance in a fun and age-appropriate way."
+            },
+            {
+                "name": "Finance News",
+                "description": "A dashboard feature that brings live financial news and updates to educate users."
+            },
+            {
+                "name": "Refer & Earn",
+                "description": "A program where users get a guaranteed 100 Befin Coins for every friend who joins Befin using their referral code."
+            }
+        ],
+        "dashboard_features": [
+            "Users can view their recent transactions (Income and Expenses).",
+            "Transactions are tracked. Users can see their Redeemed and Rewards history.",
+            "Users can get Offers/Discounts inside their Wallet."
+        ]
+    },
+    "learning": {
+        "financial_topics": [
+            "Saving: Do not save what is left after spending; instead spend what is left after saving.",
+            "Investing: The stock market is a device for transferring money from the impatient to the patient. An investment in knowledge pays the best interest.",
+            "Budgeting: A budget is telling your money where to go instead of wondering where it went.",
+            "Expenses: Beware of little expenses; a small leak will sink a great ship."
+        ],
+        "bot_persona": "The Befin bot is a helpful financial mentor and technical assistant. It encourages users to be patient, save money, learn about investments, and tracks their Befin journey. It strictly focuses on financial learning and platform guidance. It will politely refuse questions not related to the Befin platform or basic financial literacy. It will answer in short always."
+    }
+}
