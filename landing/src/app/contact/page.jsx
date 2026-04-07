@@ -59,10 +59,10 @@ export default function Contact() {
                 </div>
                 <p className="mt-3 text-sm text-gray-600">Write to us anytime.</p>
                 <a
-                  href="mailto:info@befin.in"
+                  href="mailto:info@thebefin.com"
                   className="mt-3 inline-block text-[#2563eb] font-medium hover:underline"
                 >
-                  info@befin.in
+                  info@thebefin.com
                 </a>
               </motion.div>
 
@@ -81,12 +81,12 @@ export default function Contact() {
                 </div>
                 <p className="mt-3 text-sm text-gray-600">Follow updates and message us.</p>
                 <a
-                  href="https://www.linkedin.com/company/befin/"
+                  href="https://www.linkedin.com/company/thebefin/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-3 inline-block text-[#2563eb] font-medium hover:underline"
                 >
-                  linkedin.com/company/befin
+                  linkedin.com/company/thebefin
                 </a>
               </motion.div>
 

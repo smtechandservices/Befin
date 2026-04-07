@@ -50,62 +50,6 @@ function InfiniteMarquee() {
   );
 }
 
-// Infinite vertical stat scroller component
-const statData = [
-  {
-    big: "50K+",
-    title: "Active Users",
-    extra: null,
-  },
-  {
-    big: "200+",
-    title: "Partner Institutions",
-    extra: "Across India",
-  },
-  {
-    big: "₹100Cr+",
-    title: "Transactions Processed",
-    extra: null,
-  },
-];
-
-// Modified InfiniteVerticalStats for infinite scroll (looped animation)
-function InfiniteVerticalStats() {
-  return (
-    <div className="relative h-[200px] flex flex-col justify-center items-center overflow-hidden w-full mt-8 px-4 sm:px-0">
-      <style>{`
-        .vert-marquee-track {
-          display: flex;
-          flex-direction: column;
-          animation: vert-marquee 7s linear infinite;
-        }
-        @keyframes vert-marquee {
-          0% {
-            transform: translateY(0%);
-          }
-          100% {
-            transform: translateY(-50%);
-          }
-        }
-      `}</style>
-      <div className="w-full flex flex-col items-center">
-        <div className="vert-marquee-track w-full">
-          {[...statData, ...statData].map((stat, i) => (
-            <div
-              key={i}
-              className="text-center p-5 sm:p-8 bg-gray-50 rounded-2xl shadow-md mb-6 last:mb-0 min-h-[120px] flex flex-col items-center justify-center w-full max-w-[450px] mx-auto"
-            >
-              <div className="text-5xl md:text-6xl font-bold text-[#2563eb] mb-2">{stat.big}</div>
-              <div className="text-xl font-semibold text-gray-900">{stat.title}</div>
-              {stat.extra && <div className="text-base text-gray-600 mt-2">{stat.extra}</div>}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function Home() {
   return (
     <>
@@ -121,7 +65,7 @@ export default function Home() {
               data-aos="fade-right"
             >
               <div
-                className="relative w-[40vw] min-h-[40vw] sm:min-h-[60vw] lg:min-h-[95vh]"
+                className="relative w-[40vw] min-h-[40vw] sm:min-h-[60vw] lg:min-h-[65vh]"
                 style={{
                   maskImage: 'url(/left-transparent.svg)',
                   WebkitMaskImage: 'url(/left-transparent.svg)',
@@ -166,21 +110,7 @@ export default function Home() {
                   </button>
                 </Link>
               </div>
-              
-              {/* Video Section */}
-              <div className="mt-4 sm:mt-10">
-                <div className="rounded-xl overflow-hidden shadow-lg aspect-video w-full max-w-2xl min-h-[200px] md:min-h-[300px]">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src="https://www.youtube.com/embed/0iRbD5rM5qc?si=WGKNGZcuTrBmjMLt"
-                    title="BeFin Video"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="w-full h-full min-h-[200px] md:min-h-[300px]"
-                  ></iframe>
-                </div>
-              </div>
+  
             </div>
           </div>
         </div>
@@ -201,114 +131,246 @@ export default function Home() {
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
             {/* Card 1 */}
-            <div className="bg-white p-6 sm:p-7 md:p-8 rounded-2xl relative shadow-md transition-all hover:-translate-y-2 hover:shadow-xl text-left flex flex-col justify-center min-h-[220px] md:min-h-[260px]" data-aos="fade-up" data-aos-delay="200">
-              {/* Image Top Right */}
-              <div className="absolute top-0 right-0 w-48 h-24 pointer-events-none select-none leading-[1]">
-                <Image
-                  src="/home/students.png"
-                  alt="Students icon"
-                  fill
-                  className="w-full h-full object-cover rounded-bl-full"
-                  draggable={false}
-                />
+            <label className="group block relative w-full min-h-[220px] md:min-h-[260px] [perspective:1000px] cursor-pointer" data-aos="fade-up" data-aos-delay="200">
+              <input type="checkbox" className="peer sr-only" />
+              <div className="absolute w-full h-full transition-transform duration-500 [transform-style:preserve-3d] md:group-hover:[transform:rotateY(180deg)] peer-checked:[transform:rotateY(180deg)] shadow-md group-hover:shadow-xl rounded-2xl">
+                {/* Front */}
+                <div className="absolute w-full h-full bg-white p-6 sm:p-7 md:p-8 rounded-2xl flex flex-col justify-center text-left [backface-visibility:hidden]">
+                  <div className="absolute top-0 right-0 w-48 h-24 pointer-events-none select-none leading-[1] overflow-hidden rounded-tr-2xl">
+                    <Image
+                      src="/home/students.png"
+                      alt="Students icon"
+                      fill
+                      className="w-full h-full object-cover rounded-bl-full"
+                      draggable={false}
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-0 mt-0 pr-12 md:pr-16 relative z-10">For <br /> <span className='text-3xl text-[#2563eb]'>Students</span></h3>
+                  </div>
+                </div>
+                {/* Back */}
+                <div className="absolute w-full h-full bg-[#2563eb] text-white p-6 sm:p-7 md:p-8 rounded-2xl flex flex-col justify-center text-left [transform:rotateY(180deg)] [backface-visibility:hidden]">
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-semibold mb-3 md:mb-4 mt-0">Students</h3>
+                    <p className="text-sm sm:text-base leading-relaxed text-blue-50">
+                      Smart money habits, manage allowances, and make confident payments.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3 md:mb-4 mt-0 pr-12 md:pr-16">For <br /> <span className='text-3xl'>Students</span></h3>
-                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                  Smart money habits, manage allowances, and make confident payments.
-                </p>
-              </div>
-            </div>
+            </label>
             {/* Card 2 */}
-            <div className="bg-white p-6 sm:p-7 md:p-8 rounded-2xl relative shadow-md transition-all hover:-translate-y-2 hover:shadow-xl text-left flex flex-col justify-center min-h-[220px] md:min-h-[260px]" data-aos="fade-up" data-aos-delay="300">
-              {/* Image Top Right */}
-              <div className="absolute top-0 right-0 w-48 h-24 pointer-events-none select-none leading-[1]">
-                <Image
-                  src="/home/parents.png"
-                  alt="Parents icon"
-                  fill
-                  className="w-full h-full object-cover rounded-bl-full"
-                  draggable={false}
-                />
+            <label className="group block relative w-full min-h-[220px] md:min-h-[260px] [perspective:1000px] cursor-pointer" data-aos="fade-up" data-aos-delay="300">
+              <input type="checkbox" className="peer sr-only" />
+              <div className="absolute w-full h-full transition-transform duration-500 [transform-style:preserve-3d] md:group-hover:[transform:rotateY(180deg)] peer-checked:[transform:rotateY(180deg)] shadow-md group-hover:shadow-xl rounded-2xl">
+                {/* Front */}
+                <div className="absolute w-full h-full bg-white p-6 sm:p-7 md:p-8 rounded-2xl flex flex-col justify-center text-left [backface-visibility:hidden]">
+                  <div className="absolute top-0 right-0 w-48 h-24 pointer-events-none select-none leading-[1] overflow-hidden rounded-tr-2xl">
+                    <Image
+                      src="/home/parents.png"
+                      alt="Parents icon"
+                      fill
+                      className="w-full h-full object-cover rounded-bl-full"
+                      draggable={false}
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-0 mt-0 pr-12 md:pr-16 relative z-10">By <br /> <span className='text-3xl text-[#2563eb]'>Parents</span></h3>
+                  </div>
+                </div>
+                {/* Back */}
+                <div className="absolute w-full h-full bg-[#2563eb] text-white p-6 sm:p-7 md:p-8 rounded-2xl flex flex-col justify-center text-left [transform:rotateY(180deg)] [backface-visibility:hidden]">
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-semibold mb-3 md:mb-4 mt-0">Parents</h3>
+                    <p className="text-sm sm:text-base leading-relaxed text-blue-50">
+                      Set allowances, track spending, and guide your child&apos;s financial growth.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3 md:mb-4 mt-0 pr-12 md:pr-16">By <br /> <span className='text-3xl'>Parents</span></h3>
-                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                  Set allowances, track spending, and guide your child&apos;s financial growth.
-                </p>
-              </div>
-            </div>
+            </label>
             {/* Card 3 */}
-            <div className="bg-white p-6 sm:p-7 md:p-8 rounded-2xl relative shadow-md transition-all hover:-translate-y-2 hover:shadow-xl text-left flex flex-col justify-center min-h-[220px] md:min-h-[260px]" data-aos="fade-up" data-aos-delay="300">
-              {/* Image Top Right */}
-              <div className="absolute top-0 right-0 w-48 h-24 pointer-events-none select-none leading-[1]">
-                <Image
-                  src="/home/professionals.png"
-                  alt="Professionals icon"
-                  fill
-                  className="w-full h-full object-cover rounded-bl-full"
-                  draggable={false}
-                />
+            <label className="group block relative w-full min-h-[220px] md:min-h-[260px] [perspective:1000px] cursor-pointer" data-aos="fade-up" data-aos-delay="300">
+              <input type="checkbox" className="peer sr-only" />
+              <div className="absolute w-full h-full transition-transform duration-500 [transform-style:preserve-3d] md:group-hover:[transform:rotateY(180deg)] peer-checked:[transform:rotateY(180deg)] shadow-md group-hover:shadow-xl rounded-2xl">
+                {/* Front */}
+                <div className="absolute w-full h-full bg-white p-6 sm:p-7 md:p-8 rounded-2xl flex flex-col justify-center text-left [backface-visibility:hidden]">
+                  <div className="absolute top-0 right-0 w-48 h-24 pointer-events-none select-none leading-[1] overflow-hidden rounded-tr-2xl">
+                    <Image
+                      src="/home/professionals.png"
+                      alt="Professionals icon"
+                      fill
+                      className="w-full h-full object-cover rounded-bl-full"
+                      draggable={false}
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-0 mt-0 pr-12 md:pr-16 relative z-10">To <br /> <span className='text-3xl text-[#2563eb]'>Professionals</span></h3>
+                  </div>
+                </div>
+                {/* Back */}
+                <div className="absolute w-full h-full bg-[#2563eb] text-white p-6 sm:p-7 md:p-8 rounded-2xl flex flex-col justify-center text-left [transform:rotateY(180deg)] [backface-visibility:hidden]">
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-semibold mb-3 md:mb-4 mt-0">Professionals</h3>
+                    <p className="text-sm sm:text-base leading-relaxed text-blue-50">
+                      Budget better, save consistently, and invest wisely with AI driven tools.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3 md:mb-4 mt-0 pr-12 md:pr-16">To <br /> <span className='text-3xl'>Professionals</span></h3>
-                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                  Budget better, save consistently, and invest wisely with AI driven tools.
-                </p>
-              </div>
-            </div>
+            </label>
           </div>
         </div>
       </section>
 
       {/* Smart Card Section as Banner */}
-      <section
-        className="relative flex items-center justify-center py-16 sm:py-24 md:py-32 overflow-hidden min-h-[420px] sm:min-h-[480px] md:min-h-[540px] bg-[aliceblue]"
-        style={{
-          background: "linear-gradient(120deg,#141a29 60%,#24304a 100%)"
-        }}
-      >
-        {/* Banner background image */}
-        <div className="absolute inset-0 w-full h-full z-0">
+      <section className="relative overflow-hidden bg-[#0a0f1c] py-20 lg:py-32 flex items-center justify-center min-h-[500px]">
+        <style>{`
+          @keyframes border-glow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+          }
+          .animate-float-card {
+            animation: float-card 6s ease-in-out infinite;
+          }
+          @keyframes float-card {
+            0%, 100% { transform: translateY(0) rotate(-4deg); }
+            50% { transform: translateY(-15px) rotate(-6deg); }
+          }
+          .animate-float-card-bg {
+            animation: float-card-bg 7s ease-in-out infinite;
+          }
+          @keyframes float-card-bg {
+            0%, 100% { transform: translate(25px, 25px) rotate(2deg); }
+            50% { transform: translate(25px, 10px) rotate(4deg); }
+          }
+          .animate-sweep {
+            animation: sweep-shine 4s ease-in-out infinite;
+          }
+          @keyframes sweep-shine {
+            0% { transform: translateX(-200%) skewX(-30deg); }
+            100% { transform: translateX(300%) skewX(-30deg); }
+          }
+        `}</style>
+        
+        {/* Dark deep tech background with animated glowing orbs */}
+        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
           <Image
             src="/home/banner.png"
-            alt=""
+            alt="background pattern"
             fill
-            className="object-cover w-full h-full opacity-10"
-            style={{ pointerEvents: "none", userSelect: "none" }}
-            priority={false}
+            className="object-cover w-full h-full opacity-5"
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#162036] via-transparent to-[#2e4160] opacity-20"></div>
+          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[#2563eb] blur-[150px] opacity-30 animate-pulse mix-blend-screen"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#06b6d4] blur-[120px] opacity-20 mix-blend-screen"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1c] via-transparent to-transparent"></div>
         </div>
-        {/* TEXT CONTENT OVER IMAGE */}
-        <div className="relative z-10 max-w-3xl w-full mx-auto px-5 sm:px-8 text-center" data-aos="fade-up">
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white drop-shadow-lg mb-5">
-            Smart Card
-          </h2>
-          <p className="text-2xl sm:text-4xl font-semibold text-[#61caff] mb-3">Spend Smarter | Stay in Control</p>
-          <p className="text-lg sm:text-xl md:text-3xl text-gray-200 leading-relaxed mb-4">
-            Make everyday payments easy, safe and fun with your own &nbsp;
-            <span className="bg-gradient-to-r from-[#38bdf8] via-[#5eead4] to-[#f0fdfa] bg-clip-text text-transparent">
-              BeFin Smart Card
-            </span>
-            , built for all ages.
-          </p>
-          <p className="text-base sm:text-xl text-gray-300 font-medium mb-6">Track, Tap and Manage Effortlessly.</p>
-          <div className="flex gap-3 items-center text-base sm:text-lg justify-center text-[#9cd2ff] mb-14">
-            <span className="font-medium">Secure</span>
-            <span className="opacity-50">&bull;</span>
-            <span className="font-medium">Fast</span>
-            <span className="opacity-50">&bull;</span>
-            <span className="font-medium">Prepaid</span>
+
+        <div className="relative z-10 max-w-9xl mx-auto px-6 md:px-12 flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-8 w-full">
+          {/* Text content */}
+          <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left z-10" data-aos="fade-right">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 shadow-[0_0_15px_rgba(56,189,248,0.15)]">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#38bdf8] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#38bdf8]"></span>
+              </span>
+              <span className="text-sm font-semibold tracking-wide text-[#bce3ff] uppercase">Smart Prepaid Card</span>
+            </div>
+            
+            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4rem] font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-[#7dd3fc] drop-shadow-sm tracking-tight mb-6 leading-tight">
+              Spend Smarter.<br className="hidden lg:block md:hidden"/> Stay in Control.
+            </h2>
+            
+            <p className="text-lg sm:text-xl text-blue-200/80 leading-relaxed font-light mb-10 max-w-xl">
+              Make everyday payments easy, safe, and exciting. Your own personalized <span className="text-white font-medium">BeFin Smart Card</span>, built for all ages. Track, tap, and manage effortlessly.
+            </p>
+
+            <div className="flex flex-wrap justify-center lg:justify-start gap-4 mb-12 w-full max-w-xl">
+              <div className="flex items-center gap-2 text-[#bae6fd] bg-white/[0.03] px-5 py-3 rounded-xl border border-white/5 backdrop-blur-sm">
+                <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                <span className="font-semibold text-sm tracking-wide">Ultra Secure</span>
+              </div>
+              <div className="flex items-center gap-2 text-[#bae6fd] bg-white/[0.03] px-5 py-3 rounded-xl border border-white/5 backdrop-blur-sm">
+                <svg className="w-6 h-6 text-[#38bdf8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <span className="font-semibold text-sm tracking-wide">Lightning Fast</span>
+              </div>
+              <div className="flex items-center gap-2 text-[#bae6fd] bg-white/[0.03] px-5 py-3 rounded-xl border border-white/5 backdrop-blur-sm">
+                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                <span className="font-semibold text-sm tracking-wide">Prepaid Tech</span>
+              </div>
+            </div>
+
+            <Link href="/services" passHref>
+              <button className="group relative inline-flex items-center justify-center gap-3 bg-gradient-to-r from-[#2563eb] to-[#0ea5e9] text-white px-9 py-4 rounded-full text-lg font-bold overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_-10px_rgba(56,189,248,0.7)] border border-white/10">
+                <div className="absolute inset-0 bg-white/20 w-12 -translate-x-[250%] skew-x-[-30deg] group-hover:animate-[sweep-shine_1.5s_ease-in-out_infinite]"></div>
+                <span>Get your BeFin Card</span>
+                <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </button>
+            </Link>
           </div>
-          <Link href="/services" passHref>
-            <button className="bg-[#2563eb] text-white px-8 py-3 rounded-full text-base font-semibold transition-transform hover:scale-105 shadow hover:shadow-xl border-none">
-              Get your BeFin Card →
-            </button>
-          </Link>
+
+          {/* Graphic / CSS Card Right Section */}
+          <div className="w-full lg:w-1/2 flex justify-center items-center relative [perspective:2000px] mt-12 lg:mt-0" data-aos="zoom-in" data-aos-delay="200">
+            {/* Soft backdrop glow behind cards */}
+            <div className="absolute w-[300px] h-[300px] bg-gradient-to-tr from-blue-600/40 to-cyan-400/40 rounded-full blur-[80px] z-0 animate-pulse"></div>
+            
+            {/* A second card stacked slightly behind for depth */}
+            <div className="absolute z-0 w-[280px] sm:w-[360px] aspect-[1.586/1] rounded-2xl bg-gradient-to-br from-[#1e3a8a] to-[#0f172a] p-[1px] opacity-70 shadow-2xl transition-transform animate-float-card-bg">
+              <div className="absolute inset-0 bg-white/5 rounded-2xl backdrop-blur-md"></div>
+            </div>
+
+            {/* The Main BeFin Card */}
+            <div className="relative z-10 w-[300px] sm:w-[400px] aspect-[1.586/1] rounded-2xl bg-gradient-to-tr from-[#0F172A] via-[#1E293B] to-[#38BDF8] p-[1px] shadow-2xl transition-transform duration-500 md:hover:rotate-y-12 md:hover:-rotate-x-12 [transform-style:preserve-3d] animate-float-card cursor-pointer group">
+              
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-2xl backdrop-blur-3xl overflow-hidden flex flex-col justify-between p-6 sm:p-8 border border-white/10">
+                
+                {/* Card Top / Chip */}
+                <div className="flex justify-between items-start">
+                  {/* EMV Chip */}
+                  <div className="w-12 sm:w-14 h-9 sm:h-10 rounded-lg bg-gradient-to-br from-yellow-100 via-yellow-400 to-yellow-600 shadow-inner flex items-center justify-center opacity-90 overflow-hidden relative border border-yellow-300/30">
+                    <div className="absolute inset-0 border border-black/10 rounded-lg mix-blend-overlay"></div>
+                    <div className="w-full h-[1px] bg-black/10 absolute top-[30%]"></div>
+                    <div className="w-full h-[1px] bg-black/10 absolute top-[70%]"></div>
+                    <div className="h-full w-[1px] bg-black/10 absolute left-[30%]"></div>
+                    <div className="h-full w-[1px] bg-black/10 absolute right-[30%]"></div>
+                    <div className="w-3 h-5 border border-black/10 rounded-full absolute bg-gradient-to-br from-yellow-300 to-yellow-500"></div>
+                  </div>
+                  
+                  {/* Contactless Icon */}
+                  <div className="flex gap-1 items-center opacity-80">
+                    <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M9 11a3 3 0 100 6h6a3 3 0 100-6H9z" />
+                    </svg>
+                  </div>
+                </div>
+                
+                {/* Card Middle / Number */}
+                <div className="text-xl sm:text-2xl tracking-[0.2em] sm:tracking-[0.25em] font-mono text-white/90 drop-shadow-md text-shadow pt-2">
+                  **** **** **** 8890
+                </div>
+                
+                {/* Card Bottom / Details */}
+                <div className="flex justify-between items-end pb-1">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] sm:text-[11px] text-white/50 uppercase tracking-widest font-semibold mb-1">Card Holder</span>
+                    <span className="text-sm sm:text-base text-white font-medium tracking-widest">SMART SAVER</span>
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-extrabold italic text-white/90 tracking-tighter drop-shadow-lg pr-1">
+                    Be<span className="text-[#38BDF8]">Fin</span>
+                  </div>
+                </div>
+                
+                {/* Glass glare sweep effect */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent w-[150%] h-[150%] top-[-25%] left-[-25%] animate-sweep pointer-events-none mix-blend-overlay"></div>
+                <div className="absolute top-[-50px] right-[-50px] w-[150px] h-[150px] bg-white/20 blur-[60px] rounded-full pointer-events-none"></div>
+              </div>
+
+            </div>
+          </div>
         </div>
       </section>
-
+        
       {/* Level Up Game Section */}
       <section className="w-full pb-16 md:pb-0 flex items-center bg-white">
         <div className="w-full px-0">
@@ -351,13 +413,13 @@ export default function Home() {
                 Level Up Game
               </p>
               <h2
-                className="text-3xl lg:text-5xl font-semibold leading-tight bg-gradient-to-r from-[#30a5fa] to-[#2563eb] text-transparent bg-clip-text"
+                className="text-xl lg:text-5xl font-semibold leading-tight bg-gradient-to-r from-[#30a5fa] to-[#2563eb] text-transparent bg-clip-text"
                 data-aos="fade-up"
               >
                 Learn Money the Fun Way
               </h2>
               <p
-                className="text-base sm:text-lg text-gray-700 leading-relaxed max-w-lg"
+                className="text-base md:text-lg text-center md:text-left text-gray-700 leading-relaxed max-w-lg"
                 data-aos="fade-up"
               >
                 Play interactive challenges, earn rewards, and master real-world financial skills - all in one gamified journey.
@@ -387,7 +449,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-
+      
       {/* Infinite Marquee Section */}
       <InfiniteMarquee />
 
@@ -541,9 +603,6 @@ export default function Home() {
                       </button>
                     </Link>
                   </div>
-                </div>
-                <div className="flex-1 flex justify-center w-full">
-                  <InfiniteVerticalStats />
                 </div>
               </div>
 

@@ -130,21 +130,21 @@ export default function Footer() {
               <li className="flex items-center space-x-3">
                 <MailIcon className="w-4 h-4 text-[#2563eb]" />
                 <a
-                  href="mailto:info@befin.in"
+                  href="mailto:info@thebefin.com"
                   className="text-gray-900 hover:text-[#2563eb] transition-colors"
                 >
-                  info@befin.in
+                  info@thebefin.com
                 </a>
               </li>
               <li className="flex items-center space-x-3">
                 <LinkedinIcon className="w-4 h-4 text-[#2563eb]" />
                 <a
-                  href="https://www.linkedin.com/company/befin/"
+                  href="https://www.linkedin.com/company/thebefin/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-900 hover:text-[#2563eb] transition-colors"
                 >
-                  befin
+                  thebefin
                 </a>
               </li>
             </ul>
@@ -159,7 +159,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-gray-100 pt-2 pb-4 flex flex-col md:flex-row justify-between items-center gap-3">
           <span className="text-gray-500 text-sm">
-            © {new Date().getFullYear()} befin. All rights reserved.
+            © {new Date().getFullYear()} thebefin. All rights reserved.
           </span>
           <div className="flex items-center space-x-2">
             <button
