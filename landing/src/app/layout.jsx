@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import AOSInit from '@/components/AOSInit';
@@ -65,6 +66,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <AOSInit />
+        <Analytics />
         <main id="content">{children}</main>
       </body>
     </html>
